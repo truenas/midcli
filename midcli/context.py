@@ -165,6 +165,7 @@ class Namespaces(object):
     def build_namespaces(self):
         with self.context.get_client() as c:
             methods = c.call('core.get_methods')
+            services = c.call('core.get_services')
         for fullname, method in methods.items():
             service, name = fullname.rsplit('.', 1)
 
@@ -189,7 +190,16 @@ class Namespaces(object):
             if fullname in self.METHOD_OVERRIDE:
                 command = self.METHOD_OVERRIDE[fullname](self.context, namespace, name)
             else:
-                command = CallCommand(self.context, namespace, name, method=method)
+                kwargs = {}
+                if service in services:
+                    service_type = services[service]['type']
+                    if (
+                        service_type == 'crud' and name in (
+                            'create', 'update', 'delete',
+                        )
+                    ) or service_type in ('service', 'config') and name == 'update':
+                        kwargs['output'] = False
+                command = CallCommand(self.context, namespace, name, method=method, **kwargs)
             namespace.add_child(command)
 
 

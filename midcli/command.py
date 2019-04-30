@@ -83,7 +83,13 @@ class Command(object):
 
 class CallMixin(object):
 
+    output = True
     job_lastdesc = ''
+
+    def __init__(self, *args, **kwargs):
+        if 'output' in kwargs:
+            self.output = kwargs.pop('output')
+        super().__init__(*args, **kwargs)
 
     def job_callback(self, job):
         desc = job['progress']['description']
@@ -98,10 +104,11 @@ class CallMixin(object):
         except Exception as e:
             print(e)
         else:
-            pprint.pprint(rv)
+            if self.output:
+                pprint.pprint(rv)
 
 
-class CallCommand(Command, CallMixin):
+class CallCommand(CallMixin, Command):
 
     def __init__(self, *args, method=None, **kwargs):
         self.method = method
