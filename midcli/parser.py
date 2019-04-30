@@ -4,7 +4,7 @@ import re
 
 tokens = (
     'STRING', 'NAME', 'NAME_EQ', 'HEX', 'OCT', 'INTEGER',
-	'FALSE', 'TRUE', 'NONE', 'LIST',
+	'FALSE', 'TRUE', 'NONE', 'LIST', 'COMMAND_BACK',
 )
 
 
@@ -89,6 +89,7 @@ def t_error(t):
 
 
 t_ignore = ' \t'
+t_COMMAND_BACK = r'\.\.'
 t_NAME = r'[a-zA-Z][a-zA-Z0-9_-]+'
 t_NAME_EQ = r'[a-zA-Z][a-zA-Z0-9_-]+='
 
@@ -106,14 +107,22 @@ def p_input_args(p):
 
 def p_names(p):
     '''
-    names : NAME
-    names : names NAME
+    names : name
+    names : names name
     '''
     if len(p) == 2:
         p[0] = [Name(p[1])]
     else:
         p[1].append(Name(p[2]))
         p[0] = p[1]
+
+
+def p_name(p):
+    '''
+    name : NAME
+    name : COMMAND_BACK
+    '''
+    p[0] = p[1]
 
 
 def p_arguments(p):
