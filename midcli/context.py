@@ -2,7 +2,7 @@ from middlewared.client import Client
 from prompt_toolkit import print_formatted_text as print
 from prompt_toolkit.completion import Completion
 
-from .command import CallCommand, Command, BackCommand, ListCommand
+from .command import CallCommand, Command, BackCommand, ListCommand, QueryCommand
 from .commands.pool import PoolCreateCommand
 from .parser import Name
 
@@ -198,7 +198,12 @@ class Namespaces(object):
                         )
                     ) or service_type in ('service', 'config') and name == 'update':
                         kwargs['output'] = False
-                command = CallCommand(self.context, namespace, name, method=method, **kwargs)
+                if method['filterable']:
+                    command = QueryCommand
+                else:
+                    command = CallCommand
+
+                command = command(self.context, namespace, name, method=method, **kwargs)
             namespace.add_child(command)
 
 

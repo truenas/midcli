@@ -30,6 +30,7 @@ class Arg(object):
 class Command(object):
 
     args = []
+    name = None
     parent = None
 
     def __init__(self, context, namespace, name=None, args=None):
@@ -39,6 +40,9 @@ class Command(object):
             self.name = name
         if args:
             self.args = args
+
+    def __repr__(self):
+        return f'Command<{self.name}>'
 
     def _process_args(self, parsed=None):
         data = {}
@@ -160,6 +164,24 @@ class CallCommand(CallMixin, Command):
             midargs.append(i[1])
 
         self.call(self.method['name'], *midargs, job=self.method['job'])
+
+
+class QueryCommand(CallMixin, Command):
+
+    args = (
+        Arg('select', argtype='list'),
+    )
+
+    def __init__(self, *args, method=None, **kwargs):
+        self.method = method
+        super().__init__(*args, **kwargs)
+
+    def run(self, args):
+        filters = []
+        options = {}
+        if 'select' in args:
+            options['select'] = args.pop('select')
+        self.call(self.method['name'], filters, options)
 
 
 class BackCommand(Command):
