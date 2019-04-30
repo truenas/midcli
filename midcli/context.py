@@ -157,15 +157,14 @@ class Namespaces(object):
         'pool.create': PoolCreateCommand,
     }
 
-    def __init__(self, context):
+    def __init__(self, context, client):
         self.context = context
         self.root = Namespace(context, None)
-        self.build_namespaces()
+        self.build_namespaces(client)
 
-    def build_namespaces(self):
-        with self.context.get_client() as c:
-            methods = c.call('core.get_methods')
-            services = c.call('core.get_services')
+    def build_namespaces(self, client):
+        methods = client.call('core.get_methods')
+        services = client.call('core.get_services')
         for fullname, method in methods.items():
             service, name = fullname.rsplit('.', 1)
 
@@ -210,7 +209,9 @@ class Context(object):
         self.websocket = websocket
         self.user = user
         self.password = password
-        self.namespaces = Namespaces(self)
+        with self.get_client() as c:
+            self.namespaces = Namespaces(self, c)
+            self.system_info = c.call('system.info')
         self.current_namespace = self.namespaces.root
 
     def get_client(self):
@@ -224,15 +225,17 @@ class Context(object):
             current = self.current_namespace
         return current.get_completions(text)
 
-    def get_prompt(self):
-        prompt = ''
+    def get_prompt(self, prompt):
         current = self.current_namespace
         path = []
         while current:
             if current.name:
                 path.insert(0, current.name)
             current = current.parent
-        return f'{prompt}{" ".join(path)}> '
+        namespaces = ' '.join(path)
+        prompt = prompt.replace('%n', namespaces)
+        prompt = prompt.replace('%h', self.system_info['hostname'].split('.', 1)[0])
+        return prompt
 
     def do_input(self, text):
         namespace = self.current_namespace.do_input(text)

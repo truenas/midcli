@@ -19,6 +19,8 @@ from .parser import parse
 
 class CLI(object):
 
+    default_prompt = '%h[%n]> '
+
     def __init__(self, websocket=None, user=None, password=None):
         self.context = Context(self, websocket=websocket, user=user, password=password)
         self.completer = MidCompleter(self.context)
@@ -26,7 +28,7 @@ class CLI(object):
     def _build_cli(self, history):
 
         def get_message():
-            prompt = self.context.get_prompt()
+            prompt = self.context.get_prompt(self.default_prompt)
             return [('class:prompt', prompt)]
 
         prompt_app = PromptSession(
