@@ -9,6 +9,7 @@ from .parser import Argument as ParserArgument
 class Arg(object):
 
     def __init__(self, name, argtype=None, null=False, required=False, choices=None):
+        assert argtype in ('string', 'list', 'boolean', 'integer'), argtype
         self.name = name
         self.argtype = argtype
         self.choices = choices
@@ -123,42 +124,42 @@ class CallCommand(CallMixin, Command):
         self.args, self.arg_position = self._schemas_to_args(method['accepts'])
         super().__init__(*args, **kwargs)
 
+    def _schema_to_arg(self, name, schema):
+        if 'type' not in schema:
+            return
+        if 'enum' in schema:
+            choices = [(c, c) for c in schema['enum']]
+        else:
+            choices = None
+        argtype = schema['type'][0] if isinstance(schema['type'], list) else schema['type']
+        if argtype == 'array':
+            argtype = 'list'
+        return Arg(
+            name=name,
+            argtype=argtype,
+            null='null' in schema['type'],
+            required=schema.get('_required_') is True,
+            choices=choices,
+        )
+
     def _schemas_to_args(self, schemas):
         arg_position = {}
         args = []
         for i, schema in enumerate(schemas or []):
             if 'properties' in schema:
                 for name, sch in schema['properties'].items():
-                    # FIXME: do not duplicate code with args not in dict
-                    if 'type' not in sch:
+                    if sch.get('type') == 'object':
                         continue
-                    if 'enum' in sch:
-                        choices = [(c, c) for c in sch['enum']]
-                    else:
-                        choices = None
-                    args.append(Arg(
-                        name=name,
-                        argtype=sch['type'][0] if isinstance(sch['type'], list) else sch['type'],
-                        null='null' in sch['type'],
-                        required=sch.get('_required_') is True,
-                        choices=choices,
-                    ))
+                    arg = self._schema_to_arg(name, sch)
+                    if arg:
+                        args.append(arg)
                     arg_position[name] = {'position': i, 'type': 'dict'}
             else:
-                if 'type' not in schema:
-                    continue
-                if 'enum' in schema:
-                    choices = [(c, c) for c in schema['enum']]
-                else:
-                    choices = None
-                args.append(Arg(
-                    name=schema['title'],
-                    argtype=schema['type'][0] if isinstance(schema['type'], list) else schema['type'],
-                    null='null' in schema['type'],
-                    required=schema.get('_required_') is True,
-                    choices=choices,
-                ))
-                arg_position[schema['title']] = {'position': i, 'type': 'unique'}
+                name = schema['title']
+                arg = self._schema_to_arg(name, schema)
+                if arg:
+                    args.append(arg)
+                arg_position[name] = {'position': i, 'type': 'unique'}
         return args, arg_position
 
     def do_input(self, parsed=None):
