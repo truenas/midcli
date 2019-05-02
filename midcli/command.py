@@ -8,9 +8,10 @@ from .parser import Argument as ParserArgument
 
 class Arg(object):
 
-    def __init__(self, name, argtype=None, null=False, required=False):
+    def __init__(self, name, argtype=None, null=False, required=False, choices=None):
         self.name = name
         self.argtype = argtype
+        self.choices = choices
         self.null = null
         self.required = required
 
@@ -83,6 +84,9 @@ class Command(object):
         for i in self.args:
             if i.name.startswith(lastarg):
                 yield Completion(f'{i.name}=', -len(lastarg), i.name)
+            if lastarg == f'{i.name}=':
+                for c in i.choices or []:
+                    yield Completion(c[0], 0, c[1])
 
 
 class CallMixin(object):
@@ -125,23 +129,34 @@ class CallCommand(CallMixin, Command):
         for i, schema in enumerate(schemas or []):
             if 'properties' in schema:
                 for name, sch in schema['properties'].items():
+                    # FIXME: do not duplicate code with args not in dict
                     if 'type' not in sch:
                         continue
+                    if 'enum' in sch:
+                        choices = [(c, c) for c in sch['enum']]
+                    else:
+                        choices = None
                     args.append(Arg(
                         name=name,
                         argtype=sch['type'][0] if isinstance(sch['type'], list) else sch['type'],
                         null='null' in sch['type'],
                         required=sch.get('_required_') is True,
+                        choices=choices,
                     ))
                     arg_position[name] = {'position': i, 'type': 'dict'}
             else:
                 if 'type' not in schema:
                     continue
+                if 'enum' in schema:
+                    choices = [(c, c) for c in schema['enum']]
+                else:
+                    choices = None
                 args.append(Arg(
                     name=schema['title'],
                     argtype=schema['type'][0] if isinstance(schema['type'], list) else schema['type'],
                     null='null' in schema['type'],
                     required=schema.get('_required_') is True,
+                    choices=choices,
                 ))
                 arg_position[schema['title']] = {'position': i, 'type': 'unique'}
         return args, arg_position
