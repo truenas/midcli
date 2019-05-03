@@ -5,6 +5,7 @@ import re
 tokens = (
     'STRING', 'NAME', 'NAME_EQ', 'HEX', 'OCT', 'INTEGER',
 	'FALSE', 'TRUE', 'NONE', 'LIST', 'COMMAND_BACK',
+    'QUESTION',
 )
 
 
@@ -90,6 +91,7 @@ def t_error(t):
 
 t_ignore = ' \t'
 t_COMMAND_BACK = r'\.\.'
+t_QUESTION = r'\?'
 t_NAME = r'[a-zA-Z][a-zA-Z0-9_-]+'
 t_NAME_EQ = r'[a-zA-Z][a-zA-Z0-9_-]+='
 
@@ -121,6 +123,7 @@ def p_name(p):
     '''
     name : NAME
     name : COMMAND_BACK
+    name : QUESTION
     '''
     p[0] = p[1]
 

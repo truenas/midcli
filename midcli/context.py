@@ -2,7 +2,10 @@ from middlewared.client import Client
 from prompt_toolkit import print_formatted_text as print
 from prompt_toolkit.completion import Completion
 
-from .command import CallCommand, Command, BackCommand, ListCommand, QueryCommand
+from .command import (
+    CallCommand, Command, BackCommand, ListCommand,
+    QueryCommand, QuestionCommand,
+)
 from .commands.pool import PoolCreateCommand
 from .parser import Name
 
@@ -14,7 +17,11 @@ class Namespace(object):
     def __init__(self, context, name):
         self.context = context
         self.name = name
-        self.children = [BackCommand(context, self), ListCommand(context, self)]
+        self.children = [
+            BackCommand(context, self),
+            ListCommand(context, self),
+            QuestionCommand(context, self),
+        ]
 
     def __repr__(self):
         return f'Namespace<{self.name}>'

@@ -32,6 +32,7 @@ class Arg(object):
 class Command(object):
 
     args = []
+    hidden = False
     name = None
     parent = None
 
@@ -215,5 +216,19 @@ class ListCommand(Command):
     def run(self, args):
         for i in self.namespace.children:
             if i == self:
+                continue
+            if isinstance(i, Command):
+                if i.hidden:
+                    continue
+            print(i.name)
+
+
+class QuestionCommand(Command):
+    hidden = True
+    name = '?'
+
+    def run(self, args):
+        for i in self.namespace.children:
+            if isinstance(i, self.namespace.__class__):
                 continue
             print(i.name)
