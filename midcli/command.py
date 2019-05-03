@@ -32,6 +32,7 @@ class Arg(object):
 class Command(object):
 
     args = []
+    builtin = False
     hidden = False
     name = None
     parent = None
@@ -205,6 +206,7 @@ class QueryCommand(CallMixin, Command):
 
 
 class BackCommand(Command):
+    builtin = True
     name = '..'
 
     def run(self, args):
@@ -214,6 +216,7 @@ class BackCommand(Command):
 
 
 class ListCommand(Command):
+    builtin = True
     name = 'list'
 
     def run(self, args):
@@ -227,6 +230,7 @@ class ListCommand(Command):
 
 
 class QuestionCommand(Command):
+    builtin = True
     hidden = True
     name = '?'
 

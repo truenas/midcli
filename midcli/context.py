@@ -67,6 +67,8 @@ class Namespace(object):
         if ' ' in text:
             text, args = text.split(' ', 1)
         for i in self.children:
+            if isinstance(i, Command) and i.builtin:
+                continue
             if i.name.startswith(text):
                 if args is not None:
                     for c in i.get_completions(args):
