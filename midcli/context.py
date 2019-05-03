@@ -220,7 +220,11 @@ class Context(object):
         self.current_namespace = self.namespaces.root
 
     def get_client(self):
-        c = Client(self.websocket)
+        try:
+            c = Client(self.websocket)
+        except (FileNotFoundError, ConnectionRefusedError):
+            exit('middlewared is not running.')
+
         if self.user and self.password:
             c.call('auth.login', self.user, self.password)
         return c
