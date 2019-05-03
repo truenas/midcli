@@ -89,6 +89,9 @@ class Command(object):
             if lastarg == f'{i.name}=':
                 for c in i.choices or []:
                     yield Completion(c[0], 0, c[1])
+                if i.argtype == 'boolean':
+                    yield Completion('true', 0)
+                    yield Completion('false', 0)
 
 
 class CallMixin(object):
