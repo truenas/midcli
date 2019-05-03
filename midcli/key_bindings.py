@@ -20,6 +20,11 @@ def get_key_bindings():
     def _(event):
         b = event.current_buffer
         b.complete_state = None
-        b.insert_text(' ')
+        if b.text.endswith('='):
+            # If buffer ends with = we are likely completing an argument name which means we
+            # should try to start completion again to get argument value suggestions
+            b.start_completion()
+        else:
+            b.insert_text(' ')
 
     return key_bindings
