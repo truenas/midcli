@@ -26,6 +26,9 @@ class Namespace(object):
     def __repr__(self):
         return f'Namespace<{self.name}>'
 
+    def __lt__(self, other):
+        return self.name < other.name
+
     def add_child(self, namespace):
         assert isinstance(namespace, (Command, Namespace))
         self.children.append(namespace)

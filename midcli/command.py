@@ -48,6 +48,9 @@ class Command(object):
     def __repr__(self):
         return f'Command<{self.name}>'
 
+    def __lt__(self, other):
+        return self.name < other.name
+
     def _process_args(self, parsed=None):
         data = {}
 
@@ -220,7 +223,7 @@ class ListCommand(Command):
     name = 'list'
 
     def run(self, args):
-        for i in self.namespace.children:
+        for i in sorted(self.namespace.children):
             if i == self:
                 continue
             if isinstance(i, Command):
