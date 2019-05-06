@@ -21,8 +21,9 @@ class CLI(object):
 
     default_prompt = '%h[%n]> '
 
-    def __init__(self, websocket=None, user=None, password=None):
+    def __init__(self, websocket=None, user=None, password=None, show_urls=False):
         self.context = Context(self, websocket=websocket, user=user, password=password)
+        self.show_urls = show_urls
         self.completer = MidCompleter(self.context)
 
     def _build_cli(self, history):
@@ -70,6 +71,19 @@ class CLI(object):
         print('*' * 60)
         print()
 
+        if self.show_urls:
+            with self.context.get_client() as c:
+                try:
+                    urls = c.call('system.general.get_ui_urls')
+                except Exception:
+                    pass
+                else:
+                    print()
+                    print('The web user interface is at:')
+                    for url in urls:
+                        print(url)
+                    print()
+
         try:
             while True:
                 try:
@@ -88,6 +102,7 @@ def main():
     parser.add_argument('--websocket')
     parser.add_argument('--user')
     parser.add_argument('--password')
+    parser.add_argument('--show-urls', action='store_true')
     args = parser.parse_args()
 
     cli = CLI(**args.__dict__)
