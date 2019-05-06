@@ -168,7 +168,7 @@ def p_error(p):
 
 
 lexer = lex.lex(reflags=re.UNICODE)
-parser = yacc.yacc(debug=True, optimize=True)
+parser = yacc.yacc(debug=False)
 
 
 def parse(s):
