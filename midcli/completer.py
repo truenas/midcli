@@ -1,4 +1,4 @@
-from prompt_toolkit.completion import Completer, Completion
+from prompt_toolkit.completion import Completer
 
 
 class MidCompleter(Completer):

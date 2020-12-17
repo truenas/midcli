@@ -1,7 +1,8 @@
-from ..command import Arg, CallMixin, Command
+from .call_mixin import CallMixin
+from .common_syntax.command import Arg, CommonSyntaxCommand
 
 
-class PoolCreateCommand(Command, CallMixin):
+class PoolCreateCommand(CallMixin, CommonSyntaxCommand):
 
     args = (
         Arg('name', argtype='string', required=True),
@@ -26,4 +27,3 @@ class PoolCreateCommand(Command, CallMixin):
             },
         }
         self.call('pool.create', data, job=True)
-

@@ -14,12 +14,11 @@ from prompt_toolkit.shortcuts import PromptSession, CompleteStyle
 from .completer import MidCompleter
 from .context import Context
 from .key_bindings import get_key_bindings
-from .parser import parse
 
 
 class CLI(object):
 
-    default_prompt = '%h[%n]> '
+    default_prompt = '[%h]%_n> '
 
     def __init__(self, websocket=None, user=None, password=None, show_urls=False):
         self.context = Context(self, websocket=websocket, user=user, password=password)
@@ -90,9 +89,7 @@ class CLI(object):
                     text = self.prompt_app.prompt()
                 except KeyboardInterrupt:
                     continue
-                parsed = parse(text)
-                if parsed:
-                    self.context.do_input(parsed)
+                self.context.process_input(text)
         except EOFError:
             pass
 
