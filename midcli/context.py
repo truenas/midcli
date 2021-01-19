@@ -53,6 +53,9 @@ class Namespace(object):
         return None
 
     def process_input(self, text):
+        if not text.strip():
+            return 
+
         name, rest = self._shift(text)
 
         for i in self.children:
