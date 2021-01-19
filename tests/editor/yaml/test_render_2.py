@@ -29,7 +29,7 @@ CLOUD_SYNC_CREATE_SCHEMA = {
                                 "bandwidth": {
                                     "_name_": "bandwidth",
                                     "_required_": True,
-                                    "title": "bandwidth",
+                                    "description": "bandwidth",
                                     "type": [
                                         "integer",
                                         "null"
@@ -38,19 +38,19 @@ CLOUD_SYNC_CREATE_SCHEMA = {
                                 "time": {
                                     "_name_": "time",
                                     "_required_": True,
-                                    "title": "time",
+                                    "description": "time",
                                     "type": "string"
                                 }
                             },
-                            "title": "cloud_sync_bwlimit",
+                            "description": "cloud_sync_bwlimit",
                             "type": "object"
                         }
                     ],
-                    "title": "bwlimit",
+                    "description": "bwlimit",
                     "type": "array"
                 },
             },
-            "title": "cloud_sync_create",
+            "description": "cloud_sync_create",
             "type": "object",
         },
     ],
