@@ -58,7 +58,7 @@ def fields_for(prefix, exclude=None):
     ("", fields_for("")),
     ("u", fields_for("u")),
     ("up", []),
-    ("uid,", fields_for("")),
+    ("uid,", fields_for("", exclude=["uid"])),
     ("uid,u", fields_for("u", exclude=["uid"])),
     ("uid,u ", [Completion("WHERE", 0)]),
     ("uid,username", []),

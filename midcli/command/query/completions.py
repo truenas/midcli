@@ -12,11 +12,13 @@ logger = logging.getLogger(__name__)
 __all__ = ["get_completions"]
 
 
-def get_completions_for_prefix(options, prefix):
+def get_completions_for_prefix(options, prefix, exclude=None):
+    exclude = exclude or []
+
     return [
         Completion(name, -len(prefix))
         for name in options
-        if name.startswith(prefix)
+        if name.startswith(prefix) and name not in exclude
     ]
 
 
@@ -56,7 +58,7 @@ def get_completions(schema, text):
         columns = parsed["columns"].asList()
 
         if text_stripped[-1] == ",":
-            return get_completions_for_prefix(schema["_attrs_order_"], "")
+            return get_completions_for_prefix(schema["_attrs_order_"], "", columns)
         else:
             if text[-1].isspace():
                 return [Completion("WHERE", 0)]
