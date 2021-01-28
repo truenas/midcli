@@ -4,7 +4,9 @@ Priority: optional
 Maintainer: William Grzybowski <william@grzy.org>
 Build-Depends: debhelper-compat (= 12),
                dh-python,
+               middlewared,
                python3-all,
+               python3-prompt-toolkit,
                python3-pyparsing (>= 3.0.0b2),
                python3-setuptools,
                python3-tableprint,
