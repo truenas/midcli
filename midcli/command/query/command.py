@@ -19,7 +19,7 @@ class QueryCommand(CallMixin, Command):
 
     def process_input(self, text):
         try:
-            parsed = parse(text)
+            parsed = parse(text or "")
         except ParseError as e:
             print(e.args[0])
             return

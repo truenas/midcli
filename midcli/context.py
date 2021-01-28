@@ -6,6 +6,7 @@ from prompt_toolkit.completion import Completion
 from middlewared.client import Client
 
 from .command.generic_call import GenericCallCommand
+from .command.generic_call.update import UpdateCommand
 from .command.interface import Command
 from .command.query.command import QueryCommand
 from .command.ui.common import BackCommand, LsCommand, QuestionCommand
@@ -54,7 +55,7 @@ class Namespace(object):
 
     def process_input(self, text):
         if not text.strip():
-            return 
+            return
 
         name, rest = self._shift(text)
 
@@ -151,6 +152,7 @@ class Namespaces(object):
                         kwargs['splice_kwargs'] = 0
                     elif service_type == 'crud' and name == 'update':
                         kwargs['splice_kwargs'] = 1
+                        command = UpdateCommand
 
                 command = command(self.context, namespace, name, method['cli_description'], method=method, **kwargs)
 

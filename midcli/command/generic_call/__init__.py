@@ -78,16 +78,20 @@ class GenericCallCommand(CallMixin, CommonSyntaxCommand):
         return args
 
     def run(self, args, kwargs):
-        if self.method["accepts"] and not (args or kwargs):
-            self._run_interactive()
+        if self._is_interactive(args, kwargs):
+            self._run_interactive(args, kwargs)
         else:
             self._run_noninteractive(args, kwargs)
 
-    def _run_interactive(self):
-        values = []
-        errors = []
+    def _is_interactive(self, args, kwargs):
+        return self.method["accepts"] and not (args or kwargs)
+
+    def _run_interactive(self, args, kwargs):
+        self._run_editor([], [])
+
+    def _run_editor(self, values, errors, method=None):
         while True:
-            values = edit_yaml(self.method, values, errors)
+            values = edit_yaml(method or self.method, values, errors)
             if values is None:
                 print("Aborted.")
                 return

@@ -76,15 +76,17 @@ class YamlRenderer(ValuesAwareSchemaVisitor):
     def _walk_list_node(self, name, item, value, context):
         field_errors = self._field_errors(value)
 
+        list_values = self._get_list_values(value)
+        schema_items = item.get("items", [])
+        uncommented_empty_list = value.value != undefined and not list_values and not schema_items
         rendered = [
             self._comment(context.depth, item, field_errors),
             (
                 " " * context.depth * self.indent_width +
                 self._nonscalar_prefix(value, context) +
-                f"{item['_name_']}:\n"
+                f"{item['_name_']}:{' []' if uncommented_empty_list else ''}\n"
             ),
         ]
-        list_values = self._get_list_values(value)
         if list_values:
             for i, node_value in enumerate(list_values):
                 rendered.append(
@@ -93,9 +95,9 @@ class YamlRenderer(ValuesAwareSchemaVisitor):
                         parent=Parent.ARRAY,
                     ))
                 )
-        else:
+        elif schema_items:
             # Render examples
-            for schema in item.get("items", []):
+            for schema in schema_items:
                 lines = []
                 for line in self._walk_node(None, schema, Value([], [], undefined), context.child().child().replace(
                     parent=Parent.ARRAY,
