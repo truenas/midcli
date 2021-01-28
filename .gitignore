@@ -1,6 +1,8 @@
+*.egg-info
+*.mo
 *.pyc
 *.swp
-*.mo
+.idea/
 __pycache__
 midcli/parser.out
 midcli/parsetab.py

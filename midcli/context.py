@@ -1,30 +1,39 @@
-from middlewared.client import Client
+import re
+
 from prompt_toolkit import print_formatted_text as print
 from prompt_toolkit.completion import Completion
 
-from .command import (
-    CallCommand, Command, BackCommand, ListCommand,
-    QueryCommand, QuestionCommand,
-)
-from .commands.pool import PoolCreateCommand
-from .parser import Name
+from middlewared.client import Client
+
+from .command.generic_call import GenericCallCommand
+from .command.generic_call.update import UpdateCommand
+from .command.interface import Command
+from .command.query.command import QueryCommand
+from .command.ui.common import BackCommand, LsCommand, QuestionCommand
+from .command.ui.display_mode import ModeCommand
+# from .command.pool import PoolCreateCommand
+from .display_mode.manager import DisplayModeManager
+from .display_mode.mode.csv import CsvDisplayMode
+from .display_mode.mode.table import TableDisplayMode
 
 
 class Namespace(object):
 
     parent = None
 
-    def __init__(self, context, name):
+    def __init__(self, context, name, description=""):
         self.context = context
         self.name = name
+        self.description = description
         self.children = [
             BackCommand(context, self),
-            ListCommand(context, self),
+            LsCommand(context, self),
             QuestionCommand(context, self),
+            ModeCommand(context, self),
         ]
 
     def __repr__(self):
-        return f'Namespace<{self.name}>'
+        return f"Namespace<{self.name}>"
 
     def __lt__(self, other):
         return self.name < other.name
@@ -44,144 +53,54 @@ class Namespace(object):
                 return i
         return None
 
-    def do_input(self, parsed):
-        if not parsed:
-            print('namespace not found')
-            return
-        name = parsed[0]
-        if not isinstance(name, Name):
-            print(f'invalid namespace {name}')
+    def process_input(self, text):
+        if not text.strip():
             return
 
-        parsed = parsed[1:]
+        name, rest = self._shift(text)
+
         for i in self.children:
             if i.name == name:
                 if isinstance(i, Namespace):
-                    if parsed:
-                        return i.do_input(parsed)
+                    if rest:
+                        return i.process_input(rest)
                     return i
                 elif isinstance(i, Command):
-                    i.do_input(parsed)
+                    i.process_input(rest)
                     return
-        print(f'namespace {name} not found')
+
+        print(f"Namespace {name} not found")
 
     def get_completions(self, text):
-        args = None
-        if ' ' in text:
-            text, args = text.split(' ', 1)
+        name, rest = self._shift(text)
+
         for i in self.children:
             if isinstance(i, Command) and i.builtin:
                 continue
-            if i.name.startswith(text):
-                if args is not None:
-                    for c in i.get_completions(args):
-                        yield c
+            if i.name.startswith(name):
+                if rest is not None:
+                    if i.name == name:
+                        for c in i.get_completions(rest):
+                            yield c
                 else:
-                    yield Completion(i.name, - len(text))
+                    yield Completion(i.name, - len(name))
+
         return []
+
+    def _shift(self, text):
+        parsed = re.split(r"\s+", text.lstrip(), maxsplit=1)
+
+        name = parsed[0]
+
+        rest = parsed[1] if len(parsed) > 1 else None
+
+        return name, rest
 
 
 class Namespaces(object):
 
-    BLACKLIST = (
-        'auth',
-        'auth.twofactor',
-        'mdnsbrowser',
-        'backup',
-        'backup.azure',
-        'backup.b2',
-        'backup.credential',
-        'backup.gcs',
-        'backup.s3',
-        'reporting',
-        'stats',
-        'webui.image',
-    )
-    MAPPING = {
-        'acme.dns.authenticator': ['system', 'acme_dns_auth'],
-        'activedirectory': ['directoryservice', 'activedirectory'],
-        'afp': ['service', 'afp'],
-        'alert': ['system', 'alert'],
-        'alertclasses': ['system', 'alertclasses'],
-        'alertservice': ['system', 'alertservice'],
-        'boot': ['system', 'boot'],
-        'bootenv': ['system', 'bootenv'],
-        'certificate': ['system', 'certificate'],
-        'certificateauthority': ['system', 'certifiacteauthority'],
-        'cloudsync': ['task', 'cloudsync'],
-        'cloudsync.credentials': ['task', 'cloudsync', 'credentials'],
-        'cronjob': ['task', 'cronjob'],
-        'config': ['system', 'config'],
-        'disk': ['storage', 'disk'],
-        'device': ['system', 'device'],
-        'dns': ['network', 'dns'],
-        'dyndns': ['service', 'dyndns'],
-        'filesystem': ['storage', 'filesystem'],
-        'ftp': ['service', 'ftp'],
-        'group': ['account', 'group'],
-        'idmap': ['directoryservice', 'idmap'],
-        'idmap.ad': ['directoryservice', 'idmap', 'ad'],
-        'idmap.autorid': ['directoryservice', 'idmap', 'autorid'],
-        'idmap.domaintobackend': ['directoryservice', 'idmap', 'domaintobackend'],
-        'idmap.domain': ['directoryservice', 'idmap', 'domain'],
-        'idmap.ldap': ['directoryservice', 'idmap', 'ldap'],
-        'idmap.nss': ['directoryservice', 'idmap', 'nss'],
-        'idmap.rfc2307': ['directoryservice', 'idmap', 'rfc2307'],
-        'idmap.rid': ['directoryservice', 'idmap', 'rid'],
-        'idmap.script': ['directoryservice', 'idmap', 'script'],
-        'idmap.tdb': ['directoryservice', 'idmap', 'tdb'],
-        'initshutdownscript': ['system', 'initshutdownscript'],
-        'interface': ['network', 'interface'],
-        'iscsi': ['service', 'iscsi'],
-        'iscsi.auth': ['sharing', 'iscsi', 'auth'],
-        'iscsi.extent': ['sharing', 'iscsi', 'extent'],
-        'iscsi.initiator': ['sharing', 'iscsi', 'initiator'],
-        'iscsi.portal': ['sharing', 'iscsi', 'portal'],
-        'iscsi.target': ['sharing', 'iscsi', 'target'],
-        'iscsi.targetextent': ['sharing', 'iscsi', 'targetextent'],
-        'iscsi.global': ['service', 'iscsi'],
-        'ipmi': ['network', 'ipmi'],
-        'kerberos': ['directoryservice', 'kerberos'],
-        'kerberos.keytab': ['directoryservice', 'kerberos', 'keytab'],
-        'kerberos.realm': ['directoryservice', 'kerberos', 'realm'],
-        'keychaincredential': ['system', 'keychaincredential'],
-        'ldap': ['directoryservice', 'ldap'],
-        'lldp': ['service', 'lldp'],
-        'mail': ['system', 'mail'],
-        'multipath': ['storage', 'multipath'],
-        'netdata': ['service', 'netdata'],
-        'nfs': ['service', 'nfs'],
-        'nis': ['directoryservice', 'nis'],
-        'pool': ['storage', 'pool'],
-        'pool.dataset': ['storage', 'dataset'],
-        'pool.resilver': ['storage', 'resilver'],
-        'pool.scrub': ['task', 'scrub'],
-        'pool.snapshottask': ['task', 'snapshot'],
-        'replication': ['task', 'replication'],
-        'rsyncd': ['service', 'rsyncd'],
-        'rsyncmod': ['service', 'rsyncmod'],
-        'rsynctask': ['task', 'rsync'],
-        'route': ['network', 'route'],
-        's3': ['service', 's3'],
-        'smart': ['service', 'smart'],
-        'smart.test': ['task', 'smart'],
-        'smb': ['service', 'smb'],
-        'snmp': ['service', 'snmp'],
-        'ssh': ['service', 'ssh'],
-        'support': ['system', 'support'],
-        'staticroute': ['network', 'staticroute'],
-        'systemdataset': ['system', 'systemdataset'],
-        'tftp': ['service', 'tftp'],
-        'tunable': ['system', 'tunable'],
-        'update': ['system', 'update'],
-        'ups': ['service', 'ups'],
-        'user': ['account', 'user'],
-        'vmware': ['storage', 'vmware'],
-        'webdav': ['service', 'webdav'],
-        'zfs.snapshot': ['storage', 'snapshot'],
-    }
     METHOD_OVERRIDE = {
-        'pool.create': PoolCreateCommand,
+        # 'pool.create': PoolCreateCommand,
     }
 
     def __init__(self, context, client):
@@ -190,47 +109,53 @@ class Namespaces(object):
         self.build_namespaces(client)
 
     def build_namespaces(self, client):
-        methods = client.call('core.get_methods')
-        services = client.call('core.get_services')
+        methods = client.call('core.get_methods', None, True)
+        services = client.call('core.get_services', True)
         for fullname, method in methods.items():
-            service, name = fullname.rsplit('.', 1)
-
-            if service in self.BLACKLIST:
-                continue
+            service_name, name = fullname.rsplit('.', 1)
+            service = services[service_name]
 
             namespace = self.root
 
-            if service in self.MAPPING:
-                path = self.MAPPING[service]
-            else:
-                path = service.split('.')
+            path = service['config']['cli_namespace'].split('.')
 
-            for i in path:
-                tmp = namespace.find([i])
+            for i, item in enumerate(path):
+                tmp = namespace.find([item])
                 if not tmp:
-                    tmp = Namespace(self.context, i)
+                    tmp = Namespace(self.context, item)
                     namespace.add_child(tmp)
                 namespace = tmp
+                if i == len(path) - 1:
+                    namespace.description = service['config']['cli_description']
 
             method['name'] = fullname
             if fullname in self.METHOD_OVERRIDE:
                 command = self.METHOD_OVERRIDE[fullname](self.context, namespace, name)
             else:
                 kwargs = {}
-                if service in services:
-                    service_type = services[service]['type']
-                    if (
-                        service_type == 'crud' and name in (
-                            'create', 'update', 'delete',
-                        )
-                    ) or service_type in ('service', 'config') and name == 'update':
-                        kwargs['output'] = False
+                service_type = service['type']
+                if (
+                    (service_type == 'crud' and name in ['create', 'update', 'delete']) or
+                    (service_type == 'config' and name == 'update')
+                ):
+                    kwargs['output'] = False
+
                 if method['filterable']:
                     command = QueryCommand
                 else:
-                    command = CallCommand
+                    command = GenericCallCommand
 
-                command = command(self.context, namespace, name, method=method, **kwargs)
+                    if (
+                        (service_type == 'crud' and name == 'create') or
+                        (service_type == 'config' and name == 'update')
+                    ):
+                        kwargs['splice_kwargs'] = 0
+                    elif service_type == 'crud' and name == 'update':
+                        kwargs['splice_kwargs'] = 1
+                        command = UpdateCommand
+
+                command = command(self.context, namespace, name, method['cli_description'], method=method, **kwargs)
+
             namespace.add_child(command)
 
 
@@ -245,6 +170,10 @@ class Context(object):
             self.namespaces = Namespaces(self, c)
             self.system_info = c.call('system.info')
         self.current_namespace = self.namespaces.root
+        self.display_mode_manager = DisplayModeManager({
+            "csv": CsvDisplayMode,
+            "table": TableDisplayMode,
+        }, "table")
 
     def get_client(self):
         try:
@@ -256,11 +185,6 @@ class Context(object):
             c.call('auth.login', self.user, self.password)
         return c
 
-    def get_completions(self, text, current=None):
-        if current is None:
-            current = self.current_namespace
-        return current.get_completions(text)
-
     def get_prompt(self, prompt):
         current = self.current_namespace
         path = []
@@ -270,10 +194,16 @@ class Context(object):
             current = current.parent
         namespaces = ' '.join(path)
         prompt = prompt.replace('%n', namespaces)
+        prompt = prompt.replace('%_n', f' {namespaces}' if namespaces else '')
         prompt = prompt.replace('%h', self.system_info['hostname'].split('.', 1)[0])
         return prompt
 
-    def do_input(self, text):
-        namespace = self.current_namespace.do_input(text)
+    def process_input(self, text):
+        namespace = self.current_namespace.process_input(text)
         if namespace:
             self.current_namespace = namespace
+
+    def get_completions(self, text, current=None):
+        if current is None:
+            current = self.current_namespace
+        return current.get_completions(text)
