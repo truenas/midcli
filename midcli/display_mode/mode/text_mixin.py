@@ -1,4 +1,5 @@
 # -*- coding=utf-8 -*-
+from datetime import date, datetime, time
 import json
 import logging
 
@@ -19,5 +20,8 @@ class TextMixin:
 
         if isinstance(value, str):
             return value
+
+        if isinstance(value, (date, datetime, time)):
+            return value.isoformat()
 
         return json.dumps(value)
