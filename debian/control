@@ -6,11 +6,12 @@ Build-Depends: debhelper-compat (= 12),
                dh-python,
                middlewared,
                python3-all,
+               python3-fastentrypoints,
                python3-prompt-toolkit,
                python3-pyparsing (>= 3.0.0b2),
                python3-setuptools,
                python3-tableprint,
-               python3-yaml,
+               python3-yaml
 Standards-Version: 4.4.0
 Homepage: https://github.com/freenas/midcli
 Vcs-Browser: https://salsa.debian.org/python-team/modules/midcli
@@ -19,6 +20,14 @@ Testsuite: autopkgtest-pkg-python
 
 Package: python3-midcli
 Architecture: all
-Depends: ${misc:Depends}, ${python3:Depends}
+Depends: ${misc:Depends},
+         ${python3:Depends},
+         middlewared,
+         python3-all,
+         python3-prompt-toolkit,
+         python3-pyparsing (>= 3.0.0b2),
+         python3-setuptools,
+         python3-tableprint,
+         python3-yaml
 Description: TrueNAS Command Line Interface
  TrueNAS Command Line Interface
