@@ -9,7 +9,7 @@ from .command.generic_call import GenericCallCommand
 from .command.generic_call.update import UpdateCommand
 from .command.interface import Command
 from .command.query.command import QueryCommand
-from .command.ui.common import BackCommand, LsCommand, QuestionCommand
+from .command.ui.common import BackCommand, ExitCommand, LsCommand, QuestionCommand
 from .command.ui.display_mode import ModeCommand
 # from .command.pool import PoolCreateCommand
 from .display_mode.manager import DisplayModeManager
@@ -24,9 +24,11 @@ class Namespace(object):
     def __init__(self, context, name, description=""):
         self.context = context
         self.name = name
+        self.aliases = []
         self.description = description
         self.children = [
             BackCommand(context, self),
+            ExitCommand(context, self),
             LsCommand(context, self),
             QuestionCommand(context, self),
             ModeCommand(context, self),
@@ -47,7 +49,7 @@ class Namespace(object):
         cur = path[0]
         path = path[1:]
         for i in self.children:
-            if i.name == cur:
+            if cur in [i.name] + i.aliases:
                 if path:
                     return i.find(path)
                 return i
@@ -60,7 +62,7 @@ class Namespace(object):
         name, rest = self._shift(text)
 
         for i in self.children:
-            if i.name == name:
+            if name in [i.name] + i.aliases:
                 if isinstance(i, Namespace):
                     if rest:
                         return i.process_input(rest)

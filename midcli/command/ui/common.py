@@ -1,5 +1,6 @@
 # -*- coding=utf-8 -*-
 import logging
+import sys
 
 from midcli.command.interface import Command
 
@@ -18,6 +19,17 @@ class BackCommand(Command):
         parent = self.namespace.parent
         if parent:
             self.context.current_namespace = parent
+
+
+class ExitCommand(Command):
+    builtin = True
+    hidden = True
+    name = "exit"
+    aliases = ["quit"]
+    description = "Exit CLI"
+
+    def process_input(self, text):
+        sys.exit(0)
 
 
 class LsCommand(Command):
@@ -45,6 +57,7 @@ class QuestionCommand(Command):
     builtin = True
     hidden = True
     name = "?"
+    aliases = ["help"]
     description = "List available built-in commands"
 
     def process_input(self, text):
