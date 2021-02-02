@@ -10,6 +10,7 @@ class Command:
     builtin = False
     hidden = False
     name = None
+    aliases = []
     description = None
     parent = None
 
