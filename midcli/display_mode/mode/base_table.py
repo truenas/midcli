@@ -14,6 +14,9 @@ class TableDisplayModeBase(PolymorphicDisplayMode, TextMixin):
         if not objects:
             return self.display_empty_list()
 
+        if not isinstance(objects[0], dict):
+            return "\n".join([self.display_scalar(object) for object in objects])
+
         header = self._prepare_header(objects)
         return self.display_table(header, objects)
 
