@@ -74,6 +74,26 @@ class GenericCallCommand(CallMixin, CommonSyntaxCommand):
                                     f"{len(args)} given)")
 
             args.append(kwargs)
+        else:
+            args_dict = dict(enumerate(args))
+            for k, v in kwargs.items():
+                for index, arg in enumerate(self.method["accepts"]):
+                    if arg["_name_"] == k:
+                        break
+                else:
+                    raise CallArgsError(f"Unknown keyword argument {k}")
+
+                if index in args_dict:
+                    raise CallArgsError(f"Keyword argument {k} already given as positional argument {index + 1}")
+
+                args_dict[index] = v
+
+            args = []
+            for i in range(0, max(args_dict.keys()) + 1):
+                if i not in args_dict:
+                    raise CallArgsError(f"Missing positional argument {i + 1} ({self.method['accepts'][i]['_name_']})")
+
+                args.append(args_dict[i])
 
         return args
 
