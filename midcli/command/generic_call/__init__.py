@@ -89,11 +89,12 @@ class GenericCallCommand(CallMixin, CommonSyntaxCommand):
                 args_dict[index] = v
 
             args = []
-            for i in range(0, max(args_dict.keys()) + 1):
-                if i not in args_dict:
-                    raise CallArgsError(f"Missing positional argument {i + 1} ({self.method['accepts'][i]['_name_']})")
+            if args_dict:
+                for i in range(0, max(args_dict.keys()) + 1):
+                    if i not in args_dict:
+                        raise CallArgsError(f"Missing positional argument {i + 1} ({self.method['accepts'][i]['_name_']})")
 
-                args.append(args_dict[i])
+                    args.append(args_dict[i])
 
         return args
 
