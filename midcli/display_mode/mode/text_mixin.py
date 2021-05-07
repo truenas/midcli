@@ -1,7 +1,8 @@
 # -*- coding=utf-8 -*-
 from datetime import date, datetime, time
-import json
 import logging
+
+from middlewared.client import ejson
 
 from midcli.utils.lang import undefined
 
@@ -24,4 +25,4 @@ class TextMixin:
         if isinstance(value, (date, datetime, time)):
             return value.isoformat()
 
-        return json.dumps(value)
+        return ejson.dumps(value)
