@@ -11,6 +11,9 @@ class YamlToArgsError(Exception):
 
 
 def yaml_to_args(schema, doc):
+    if doc is None:
+        return []
+
     if not isinstance(doc, dict):
         raise YamlToArgsError("Document is not an object")
 
