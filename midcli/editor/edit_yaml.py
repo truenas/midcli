@@ -24,7 +24,7 @@ def edit_yaml(schema, values, errors):
             doc = yaml.safe_load(text)
         except yaml.YAMLError as e:
             error_title = "YAML Syntax Error"
-            error_text = str(e)
+            error_text = f"The input you provided has invalid YAML syntax:\n\n{str(e)}"
         else:
             try:
                 args = yaml_to_args(schema, doc)
