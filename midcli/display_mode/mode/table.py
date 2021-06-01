@@ -50,3 +50,14 @@ class TableDisplayMode(TableDisplayModeBase, TextMixin):
 
     def display_empty_object(self):
         return "(empty object)"
+
+    def value_to_text(self, value):
+        text = self._value_to_readable_text(value)
+
+        if text is not undefined:
+            if len(text) > 64:
+                return f"{text[:61]}..."
+
+            return text
+
+        return f"<{type(value).__name__}>"
