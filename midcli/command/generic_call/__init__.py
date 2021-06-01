@@ -1,14 +1,13 @@
 # -*- coding=utf-8 -*-
 import logging
 
-from prompt_toolkit.shortcuts import yes_no_dialog
-
 from middlewared.client import ClientException, ValidationErrors
 
 from midcli.command.call_mixin import CallMixin
 from midcli.command.common_syntax.argument import Argument, BooleanArgument, EnumArgument
 from midcli.command.common_syntax.command import CommonSyntaxCommand
 from midcli.editor.edit_yaml import edit_yaml
+from midcli.editor.yes_no import editor_yes_no_dialog
 from midcli.utils.lang import undefined
 
 logger = logging.getLogger(__name__)
@@ -122,19 +121,16 @@ class GenericCallCommand(CallMixin, CommonSyntaxCommand):
                 return
             except ValidationErrors as e:
                 errors = e.errors
-                if yes_no_dialog(
+                if editor_yes_no_dialog(
                     title="Validation Errors",
-                    text="\n".join([f"* {error.attribute}: {error.errmsg}" for error in errors]) + "\n\nContinue?",
+                    text="\n".join([f"* {error.attribute}: {error.errmsg}" for error in errors]),
                 ).run():
                     continue
                 else:
                     print("Aborted.")
                     return
             except ClientException as e:
-                if yes_no_dialog(
-                    title="Error",
-                    text=f"{e.error}.\nContinue?",
-                ).run():
+                if editor_yes_no_dialog("Error", e.error).run():
                     continue
                 else:
                     print("Aborted.")
