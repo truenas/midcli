@@ -13,11 +13,22 @@ __all__ = ["TextMixin"]
 
 class TextMixin:
     def value_to_text(self, value):
+        text = self._value_to_readable_text(value)
+
+        if text is not undefined:
+            return text
+
+        return ejson.dumps(value)
+
+    def _value_to_readable_text(self, value):
         if value is undefined:
             return "<undefined>"
 
         if value is None:
             return "<null>"
+
+        if isinstance(value, (bool, int, float)):
+            return ejson.dumps(value)
 
         if isinstance(value, str):
             return value
@@ -25,4 +36,4 @@ class TextMixin:
         if isinstance(value, (date, datetime, time)):
             return value.isoformat()
 
-        return ejson.dumps(value)
+        return undefined
