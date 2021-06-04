@@ -1,12 +1,12 @@
 # -*- coding=utf-8 -*-
 import logging
 
-from prompt_toolkit.shortcuts import yes_no_dialog
 import yaml
 
 from .run import run_editor
 from .yaml.args import yaml_to_args, YamlToArgsError
 from .yaml.render import render_yaml
+from .yes_no import editor_yes_no_dialog
 
 logger = logging.getLogger(__name__)
 
@@ -34,10 +34,7 @@ def edit_yaml(schema, values, errors):
             else:
                 return args
 
-        if yes_no_dialog(
-            title=error_title,
-            text=error_text + "\n\nContinue?",
-        ).run():
+        if editor_yes_no_dialog(error_title, error_text).run():
             continue
         else:
             return None

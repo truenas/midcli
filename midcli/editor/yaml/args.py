@@ -11,8 +11,11 @@ class YamlToArgsError(Exception):
 
 
 def yaml_to_args(schema, doc):
+    if doc is None:
+        return []
+
     if not isinstance(doc, dict):
-        raise YamlToArgsError("Document is not an object")
+        raise YamlToArgsError(f"The document you provided is not an object (it is {type(doc)})")
 
     args = []
     for i, (item, (key, value)) in enumerate(zip(schema["accepts"], doc.items())):
