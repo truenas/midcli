@@ -6,8 +6,6 @@ from middlewared.client import ClientException, ValidationErrors
 from midcli.command.call_mixin import CallMixin
 from midcli.command.common_syntax.argument import Argument, BooleanArgument, EnumArgument
 from midcli.command.common_syntax.command import CommonSyntaxCommand
-from midcli.editor.edit_yaml import edit_yaml
-from midcli.editor.yes_no import editor_yes_no_dialog
 from midcli.utils.lang import undefined
 
 logger = logging.getLogger(__name__)
@@ -98,22 +96,22 @@ class GenericCallCommand(CallMixin, CommonSyntaxCommand):
         return args
 
     def run(self, args, kwargs):
-        if self._is_interactive(args, kwargs):
-            self._run_interactive(args, kwargs)
+        if self.context.editor.is_available() and self._needs_editor(args, kwargs):
+            self._run_with_editor(args, kwargs)
         else:
-            self._run_noninteractive(args, kwargs)
+            self._run_with_args(args, kwargs)
 
-    def _is_interactive(self, args, kwargs):
+    def _needs_editor(self, args, kwargs):
         return self.method["accepts"] and not (args or kwargs)
 
-    def _run_interactive(self, args, kwargs):
+    def _run_with_editor(self, args, kwargs):
         self._run_editor([], [])
 
     def _run_editor(self, values, errors, method=None):
+        schema = method or self.method
         while True:
-            values = edit_yaml(method or self.method, values, errors)
+            values = self.context.editor.edit(schema, values, errors)
             if values is None:
-                print("Aborted.")
                 return
 
             try:
@@ -121,22 +119,20 @@ class GenericCallCommand(CallMixin, CommonSyntaxCommand):
                 return
             except ValidationErrors as e:
                 errors = e.errors
-                if editor_yes_no_dialog(
+                if self.context.editor.on_error(
                     title="Validation Errors",
                     text="\n".join([f"* {error.attribute}: {error.errmsg}" for error in errors]),
-                ).run():
+                ):
                     continue
                 else:
-                    print("Aborted.")
                     return
             except ClientException as e:
-                if editor_yes_no_dialog("Error", e.error).run():
+                if self.context.editor.on_error("Error", e.error):
                     continue
                 else:
-                    print("Aborted.")
                     return
 
-    def _run_noninteractive(self, args, kwargs):
+    def _run_with_args(self, args, kwargs):
         try:
             call_args = self._call_args(args, kwargs)
         except CallArgsError as e:

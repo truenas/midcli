@@ -12,7 +12,7 @@ __all__ = ["UpdateCommand"]
 
 
 class UpdateCommand(GenericCallCommand):
-    def _is_interactive(self, args, kwargs):
+    def _needs_editor(self, args, kwargs):
         if self.method["accepts"][0]["_name_"] in kwargs:
             return len(kwargs) == 1
 
@@ -24,7 +24,7 @@ class UpdateCommand(GenericCallCommand):
 
         return super()._call_args(args, kwargs)
 
-    def _run_interactive(self, args, kwargs):
+    def _run_with_editor(self, args, kwargs):
         method = copy.deepcopy(self.method)
 
         schema = method["accepts"][1]

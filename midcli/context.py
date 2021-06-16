@@ -163,7 +163,7 @@ class Namespaces(object):
 
 class Context(object):
 
-    def __init__(self, cli, websocket=None, user=None, password=None):
+    def __init__(self, cli, websocket, user, password, editor, mode):
         self.cli = cli
         self.websocket = websocket
         self.user = user
@@ -175,7 +175,8 @@ class Context(object):
         self.display_mode_manager = DisplayModeManager({
             "csv": CsvDisplayMode,
             "table": TableDisplayMode,
-        }, "table")
+        }, mode or "table")
+        self.editor = editor
 
     def get_client(self):
         try:
