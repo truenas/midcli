@@ -8,10 +8,10 @@ from middlewared.client import Client
 from .command.generic_call import GenericCallCommand
 from .command.generic_call.update import UpdateCommand
 from .command.interface import Command
+from .command.override.account import *
 from .command.query.command import QueryCommand
 from .command.ui.common import BackCommand, ExitCommand, LsCommand, QuestionCommand
 from .command.ui.display_mode import ModeCommand
-# from .command.pool import PoolCreateCommand
 from .display_mode.manager import DisplayModeManager
 from .display_mode.mode.csv import CsvDisplayMode
 from .display_mode.mode.table import TableDisplayMode
@@ -102,7 +102,17 @@ class Namespace(object):
 class Namespaces(object):
 
     METHOD_OVERRIDE = {
-        # 'pool.create': PoolCreateCommand,
+        'account.user.query': AccountQueryCommand,
+        'account.user.create': AccountCreateCommand,
+        'account.user.update': AccountUpdateCommand,
+        'account.user.delete': AccountItemMethodCommand,
+        'account.user.shell_choices': AccountItemMethodCommand,
+        'account.user.set_attribute': AccountItemMethodCommand,
+        'account.user.pop_attribute': AccountItemMethodCommand,
+        'account.group.query': GroupQueryCommand,
+        'account.group.create': GroupCreateCommand,
+        'account.group.update': GroupUpdateCommand,
+        'account.group.delete': GroupItemMethodCommand,
     }
 
     def __init__(self, context, client):
@@ -131,32 +141,34 @@ class Namespaces(object):
                     namespace.description = service['config']['cli_description']
 
             method['name'] = fullname
-            if fullname in self.METHOD_OVERRIDE:
-                command = self.METHOD_OVERRIDE[fullname](self.context, namespace, name)
-            else:
-                kwargs = {}
-                service_type = service['type']
-                if (
-                    (service_type == 'crud' and name in ['create', 'update', 'delete']) or
-                    (service_type == 'config' and name == 'update')
-                ):
-                    kwargs['output'] = False
 
+            command = self.METHOD_OVERRIDE.get(f"{service['config']['cli_namespace']}.{name}") or GenericCallCommand
+            kwargs = {}
+
+            service_type = service['type']
+            if (
+                (service_type == 'crud' and name in ['create', 'update', 'delete']) or
+                (service_type == 'config' and name == 'update')
+            ):
+                kwargs['output'] = False
+
+            if command == GenericCallCommand:
                 if method['filterable']:
                     command = QueryCommand
                 else:
                     command = GenericCallCommand
 
-                    if (
-                        (service_type == 'crud' and name == 'create') or
-                        (service_type == 'config' and name == 'update')
-                    ):
-                        kwargs['splice_kwargs'] = 0
-                    elif service_type == 'crud' and name == 'update':
-                        kwargs['splice_kwargs'] = 1
-                        command = UpdateCommand
+            if (
+                (service_type == 'crud' and name == 'create') or
+                (service_type == 'config' and name == 'update')
+            ):
+                kwargs['splice_kwargs'] = 0
+            elif service_type == 'crud' and name == 'update':
+                kwargs['splice_kwargs'] = 1
+                if command == GenericCallCommand:
+                    command = UpdateCommand
 
-                command = command(self.context, namespace, name, method['cli_description'], method=method, **kwargs)
+            command = command(self.context, namespace, name, method['cli_description'], method=method, **kwargs)
 
             namespace.add_child(command)
 

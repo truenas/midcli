@@ -52,4 +52,7 @@ class EnumArgument(Argument):
         self.enum = enum
 
     def get_completions_values(self):
+        if callable(self.enum):
+            return self.enum()
+
         return self.enum

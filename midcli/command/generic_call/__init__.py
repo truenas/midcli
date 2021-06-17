@@ -1,4 +1,5 @@
 # -*- coding=utf-8 -*-
+import copy
 import logging
 
 from middlewared.client import ClientException, ValidationErrors
@@ -19,13 +20,19 @@ class CallArgsError(ValueError):
 
 class GenericCallCommand(CallMixin, CommonSyntaxCommand):
     def __init__(self, *args, method=None, splice_kwargs=None, **kwargs):
-        self.method = method
+        self.method = self._process_method(copy.deepcopy(method))
         self.splice_kwargs = splice_kwargs
 
         self.arguments = []
         self._create_arguments()
 
         super().__init__(*args, **kwargs)
+
+    def _process_method(self, method):
+        """
+        Transforms middleware method definition (e.g. rename poorly named arguments)
+        """
+        return method
 
     def _create_arguments(self):
         for i, item in enumerate(self.method["accepts"] or []):
