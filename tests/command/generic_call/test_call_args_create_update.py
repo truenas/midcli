@@ -68,7 +68,7 @@ USER_UPDATE["accepts"].insert(0, {
 ])
 def test_call_args_create(text, call_args, capsys):
     command = GenericCallCommand(Mock(), Mock(), "create", None, "user.create", method=USER_CREATE, splice_kwargs=0)
-    command._run_interactive = Mock(side_effect=RuntimeError("Interactive run attempt"))
+    command._run_with_editor = Mock(side_effect=RuntimeError("Interactive run attempt"))
     command.call = Mock()
     command.process_input(text)
     if isinstance(call_args, str):
@@ -86,7 +86,7 @@ def test_call_args_create(text, call_args, capsys):
 ])
 def test_call_args_update(text, call_args, capsys):
     command = GenericCallCommand(Mock(), Mock(), "update", None, "user.update", method=USER_UPDATE, splice_kwargs=1)
-    command._run_interactive = Mock(side_effect=RuntimeError("Interactive run attempt"))
+    command._run_with_editor = Mock(side_effect=RuntimeError("Interactive run attempt"))
     command.call = Mock()
     command.process_input(text)
     if isinstance(call_args, str):

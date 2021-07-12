@@ -17,7 +17,7 @@ SCHEMA = {
 ])
 def test_call_kwargs(text, call_args, capsys):
     command = GenericCallCommand(Mock(), Mock(), "create", None, "user.create", method=SCHEMA, splice_kwargs=None)
-    command._run_interactive = Mock(side_effect=RuntimeError("Interactive run attempt"))
+    command._run_with_editor = Mock(side_effect=RuntimeError("Interactive run attempt"))
     command.call = Mock()
     command.process_input(text)
     if isinstance(call_args, str):

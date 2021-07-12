@@ -1,4 +1,5 @@
 # -*- coding=utf-8 -*-
+import copy
 import logging
 import traceback
 
@@ -10,16 +11,29 @@ __all__ = ["CallMixin"]
 
 
 class CallMixin(object):
+    output_processors = []
+
     def __init__(self, *args, **kwargs):
         self.job_last_printed_description = ""
         self.output = kwargs.pop("output", True)
 
         super().__init__(*args, **kwargs)
 
+    def _process_call_args(self, args):
+        """
+        Transforms args before passing them to the middleware (e.g. rename poorly named arguments)
+        """
+        return args
+
     def call(self, name, *args, job=False, raise_=False):
         try:
+            args = self._process_call_args(copy.deepcopy(args))
+
             with self.context.get_client() as c:
                 rv = c.call(name, *args, job=job, callback=self._job_callback)
+
+            for op in self.output_processors:
+                rv = op(self.context, rv)
         except Exception as e:
             if raise_:
                 raise
