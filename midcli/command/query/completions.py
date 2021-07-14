@@ -23,6 +23,9 @@ def get_completions_for_prefix(options, prefix, exclude=None):
 
 
 def get_completions(schema, text):
+    if not schema:
+        return []
+
     text_stripped = text.strip()
 
     if not text_stripped:
