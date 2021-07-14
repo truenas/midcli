@@ -16,7 +16,11 @@ def run_editor(text):
         f.write(text)
         f.flush()
 
-        subprocess.run([EDITOR, f.name])
+        try:
+            subprocess.run([EDITOR, f.name])
+        except FileNotFoundError:
+            input(f"EDITOR={EDITOR} not found. Press any key to continue.")
+            return ""
 
         with open(f.name, encoding="utf-8") as fr:
             return fr.read()
