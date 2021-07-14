@@ -31,6 +31,10 @@ test_account_group_query_2 = lambda: command_test(
     "account group query gid",
     regex="gid\n"
 )
+test_account_group_query_3 = lambda: command_test(
+    "account group query unknown_field",
+    regex="None of the specified fields"
+)
 
 test_group_create_1 = lambda: command_test(
     "account group create users=[\"nonexistentuser\"]",

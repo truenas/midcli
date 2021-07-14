@@ -51,6 +51,9 @@ class TableDisplayMode(TableDisplayModeBase, TextMixin):
     def display_empty_object(self):
         return "(empty object)"
 
+    def display_empty_header(self, count):
+        return f"(none of the specified fields found among {count} object(s))"
+
     def value_to_text(self, value):
         text = self._value_to_readable_text(value)
 

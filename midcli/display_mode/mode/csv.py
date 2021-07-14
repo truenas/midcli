@@ -29,3 +29,6 @@ class CsvDisplayMode(TableDisplayModeBase):
 
     def display_empty_object(self):
         return ""
+
+    def display_empty_header(self, count):
+        return f"None of the specified fields found among {count} object(s)"

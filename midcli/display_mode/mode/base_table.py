@@ -18,6 +18,9 @@ class TableDisplayModeBase(PolymorphicDisplayMode, TextMixin):
             return "\n".join([self.display_scalar(object) for object in objects])
 
         header = self._prepare_header(objects)
+        if not header:
+            return self.display_empty_header(len(objects))
+
         return self.display_table(header, objects)
 
     def display_object(self, object):
@@ -36,6 +39,9 @@ class TableDisplayModeBase(PolymorphicDisplayMode, TextMixin):
         raise NotImplementedError
 
     def display_empty_object(self):
+        raise NotImplementedError
+
+    def display_empty_header(self, count):
         raise NotImplementedError
 
     def _prepare_header(self, objects):
