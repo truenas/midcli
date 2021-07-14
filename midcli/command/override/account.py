@@ -162,6 +162,7 @@ def patch_groups(context, groups):
         groups[i] = group = {
             k: group[k]
             for k in ["gid", "name"] + [k for k in group.keys() if k not in ["gid", "group", "name"]]
+            if k in group
         }
 
         if "users" in group:
