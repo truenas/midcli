@@ -23,9 +23,13 @@ def create_test_group():
         return c.call("group.query", [["group", "=", "test"]], {"get": True})["gid"]
 
 
-test_account_group_query = lambda: command_test(
+test_account_group_query_1 = lambda: command_test(
     "account group query * WHERE gid == 0",
     regex="gid,name.+\n0,root"
+)
+test_account_group_query_2 = lambda: command_test(
+    "account group query gid",
+    regex="gid\n"
 )
 
 test_group_create_1 = lambda: command_test(
