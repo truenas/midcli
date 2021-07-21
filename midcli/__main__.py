@@ -1,7 +1,12 @@
 import argparse
+import asyncio
 import os
+import sys
+import threading
+import time
 
 from prompt_toolkit import print_formatted_text as print
+from prompt_toolkit.application import get_app, run_in_terminal
 from prompt_toolkit.completion import DynamicCompleter, ThreadedCompleter
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import HasFocus, IsDone
@@ -19,7 +24,7 @@ from .editor.print_template import PrintTemplateEditor
 from .key_bindings import get_key_bindings
 
 
-class CLI(object):
+class CLI:
 
     default_prompt = '[%h]%_n> '
 
@@ -37,6 +42,9 @@ class CLI(object):
         self.show_urls = show_urls
         self.command = command
         self.completer = MidCompleter(self.context)
+
+        self.last_kernel_message = None
+        self.loop = None
 
     def _build_cli(self, history):
         def get_message():
@@ -69,6 +77,20 @@ class CLI(object):
 
         return prompt_app
 
+    def _read_kmsg(self):
+        with open("/dev/kmsg") as f:
+            while True:
+                f.readline()
+                self.last_kernel_message = time.monotonic()
+
+    def _repaint_cli_after_kernel_messages(self):
+        while True:
+            if self.last_kernel_message is not None and time.monotonic() - self.last_kernel_message >= 3:
+                self.last_kernel_message = None
+                self.loop.call_soon_threadsafe(lambda: run_in_terminal(lambda: None))
+
+            time.sleep(1)
+
     def run(self):
         if self.command is not None:
             self.context.process_input(self.command)
@@ -78,6 +100,16 @@ class CLI(object):
         history = FileHistory(os.path.expanduser(history_file))
 
         self.prompt_app = self._build_cli(history)
+        self.loop = asyncio.get_event_loop()
+
+        is_tty1 = False
+        try:
+            is_tty1 = os.ttyname(sys.stdout.fileno()) == '/dev/tty1'
+        except Exception:
+            pass
+        if is_tty1:
+            threading.Thread(target=self._read_kmsg).start()
+            threading.Thread(target=self._repaint_cli_after_kernel_messages).start()
 
         print()
         print('*' * 60)
