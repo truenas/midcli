@@ -10,11 +10,13 @@ from .command.generic_call.update import UpdateCommand
 from .command.interface import Command
 from .command.override.account import *
 from .command.query.command import QueryCommand
+from .command.tools import ShellCommand
 from .command.ui.common import BackCommand, ExitCommand, LsCommand, QuestionCommand
 from .command.ui.display_mode import ModeCommand
 from .display_mode.manager import DisplayModeManager
 from .display_mode.mode.csv import CsvDisplayMode
 from .display_mode.mode.table import TableDisplayMode
+from .utils.shell import is_main_cli
 
 
 class Namespace(object):
@@ -26,13 +28,14 @@ class Namespace(object):
         self.name = name
         self.aliases = []
         self.description = description
-        self.children = [
+        self.children = list(filter(None, [
             BackCommand(context, self),
             ExitCommand(context, self),
             LsCommand(context, self),
             QuestionCommand(context, self),
+            ShellCommand(context, self) if is_main_cli() else None,
             ModeCommand(context, self),
-        ]
+        ]))
 
     def __repr__(self):
         return f"Namespace<{self.name}>"
