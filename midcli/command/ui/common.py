@@ -1,6 +1,6 @@
 # -*- coding=utf-8 -*-
 import logging
-import sys
+import os
 
 from midcli.command.interface import Command
 
@@ -29,7 +29,7 @@ class ExitCommand(Command):
     description = "Exit CLI"
 
     def process_input(self, text):
-        sys.exit(0)
+        os._exit(0)
 
 
 class LsCommand(Command):
