@@ -1,12 +1,13 @@
 import argparse
 import asyncio
+import errno
 import os
 import sys
 import threading
 import time
 
 from prompt_toolkit import print_formatted_text as print
-from prompt_toolkit.application import get_app, run_in_terminal
+from prompt_toolkit.application import run_in_terminal
 from prompt_toolkit.completion import DynamicCompleter, ThreadedCompleter
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import HasFocus, IsDone
@@ -22,13 +23,14 @@ from .editor.interactive import InteractiveEditor
 from .editor.noninteractive import NonInteractiveEditor
 from .editor.print_template import PrintTemplateEditor
 from .key_bindings import get_key_bindings
+from .utils.shell import is_main_cli, switch_to_shell
 
 
 class CLI:
 
     default_prompt = '[%h]%_n> '
 
-    def __init__(self, websocket=None, user=None, password=None, show_urls=False, command=None, interactive=None,
+    def __init__(self, websocket=None, user=None, password=None, command=None, interactive=None,
                  mode=None, print_template=False):
         if command is None or interactive:
             editor = InteractiveEditor()
@@ -39,7 +41,6 @@ class CLI:
 
         self.context = Context(self, websocket=websocket, user=user, password=password,
                                editor=editor, mode=mode)
-        self.show_urls = show_urls
         self.command = command
         self.completer = MidCompleter(self.context)
 
@@ -77,8 +78,43 @@ class CLI:
 
         return prompt_app
 
+    def _show_banner(self):
+        self._show_urls()
+
+        print('Type "help" to list available commands.')
+        print()
+
+    def _show_urls(self):
+        with self.context.get_client() as c:
+            try:
+                urls = c.call('system.general.get_ui_urls')
+            except Exception:
+                pass
+            else:
+                print()
+                print('The web user interface is at:')
+                for url in urls:
+                    print(url)
+                print()
+
+    def _should_switch_to_shell(self):
+        if is_main_cli():
+            try:
+                with self.context.get_client() as c:
+                    return not c.call('system.advanced.config')['consolemenu']
+            except Exception:
+                pass
+
+        return False
+
     def _read_kmsg(self):
         with open("/dev/kmsg") as f:
+            # Skip existing messages
+            os.set_blocking(f.fileno(), False)
+            while f.readline():
+                pass
+            os.set_blocking(f.fileno(), True)
+
             while True:
                 f.readline()
                 self.last_kernel_message = time.monotonic()
@@ -87,13 +123,24 @@ class CLI:
         while True:
             if self.last_kernel_message is not None and time.monotonic() - self.last_kernel_message >= 3:
                 self.last_kernel_message = None
-                self.loop.call_soon_threadsafe(lambda: run_in_terminal(lambda: None))
+                self.loop.call_soon_threadsafe(self._repaint_cli)
 
             time.sleep(1)
+
+    def _repaint_cli(self):
+        if is_main_cli():
+            self._show_banner()
+
+        run_in_terminal(lambda: None)
 
     def run(self):
         if self.command is not None:
             self.context.process_input(self.command)
+            return
+
+        if self._should_switch_to_shell():
+            self._show_urls()
+            switch_to_shell()
             return
 
         history_file = '~/.midcli.hist'
@@ -111,25 +158,12 @@ class CLI:
             threading.Thread(target=self._read_kmsg).start()
             threading.Thread(target=self._repaint_cli_after_kernel_messages).start()
 
-        print()
-        print('*' * 60)
-        print('Software in ALPHA state, highly experimental.')
-        print('No bugs/features being accepted at the moment.')
-        print('*' * 60)
-        print()
+        if is_main_cli():
+            print()
+            print('Console setup')
+            print('_____________')
 
-        if self.show_urls:
-            with self.context.get_client() as c:
-                try:
-                    urls = c.call('system.general.get_ui_urls')
-                except Exception:
-                    pass
-                else:
-                    print()
-                    print('The web user interface is at:')
-                    for url in urls:
-                        print(url)
-                    print()
+            self._show_banner()
 
         try:
             while True:
@@ -140,7 +174,7 @@ class CLI:
 
                 self.context.process_input(text)
         except EOFError:
-            pass
+            os._exit(0)
 
 
 def main():
@@ -148,7 +182,6 @@ def main():
     parser.add_argument('--websocket')
     parser.add_argument('--user')
     parser.add_argument('--password')
-    parser.add_argument('--show-urls', action='store_true')
     parser.add_argument('-c', '--command',
                         help='Single command to execute')
     parser.add_argument('-i', '--interactive', action='store_true',
