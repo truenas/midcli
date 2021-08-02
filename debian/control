@@ -25,9 +25,9 @@ Depends: ${misc:Depends},
          middlewared,
          python3-all,
          python3-prompt-toolkit,
+         python3-ptable,
          python3-pyparsing (>= 3.0.0b2),
          python3-setuptools,
-         python3-tableprint,
          python3-yaml
 Description: TrueNAS Command Line Interface
  TrueNAS Command Line Interface

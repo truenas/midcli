@@ -36,4 +36,12 @@ class TextMixin:
         if isinstance(value, (date, datetime, time)):
             return value.isoformat()
 
+        if isinstance(value, list):
+            if not value:
+                return "<empty list>"
+
+            readable_texts = list(map(self._value_to_readable_text, value))
+            if all(rt != undefined for rt in readable_texts):
+                return "\n".join(readable_texts)
+
         return undefined
