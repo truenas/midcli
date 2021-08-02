@@ -9,6 +9,7 @@ from .command.generic_call import GenericCallCommand
 from .command.generic_call.update import UpdateCommand
 from .command.interface import Command
 from .command.override.account import *
+from .command.override.interface import *
 from .command.query.command import QueryCommand
 from .command.tools import ShellCommand
 from .command.ui.common import BackCommand, ExitCommand, LsCommand, QuestionCommand
@@ -116,6 +117,8 @@ class Namespaces(object):
         'account.group.create': GroupCreateCommand,
         'account.group.update': GroupUpdateCommand,
         'account.group.delete': GroupItemMethodCommand,
+        'network.interface.create': InterfaceCreateCommand,
+        'network.interface.update': InterfaceUpdateCommand,
     }
 
     def __init__(self, context, client):
