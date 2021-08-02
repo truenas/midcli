@@ -1,6 +1,5 @@
 import argparse
 import asyncio
-import errno
 import os
 import sys
 import threading
@@ -16,6 +15,7 @@ from prompt_toolkit.layout.processors import (
     ConditionalProcessor, HighlightMatchingBracketProcessor, TabsProcessor,
 )
 from prompt_toolkit.shortcuts import PromptSession, CompleteStyle
+from prompt_toolkit.styles import Style
 
 from .completer import MidCompleter
 from .context import Context
@@ -50,10 +50,16 @@ class CLI:
     def _build_cli(self, history):
         def get_message():
             prompt = self.context.get_prompt(self.default_prompt)
-            return [('class:prompt', prompt)]
+            return [
+                ('class:before_prompt', self.context.get_before_prompt()),
+                ('class:prompt', prompt),
+            ]
 
         prompt_app = PromptSession(
             message=get_message,
+            style=Style.from_dict({
+                'before_prompt': 'fg:ansigreen',
+            }),
             complete_style=CompleteStyle.COLUMN,
             completer=ThreadedCompleter(
                 DynamicCompleter(lambda: self.completer)

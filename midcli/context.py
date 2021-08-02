@@ -206,6 +206,27 @@ class Context(object):
             c.call('auth.login', self.user, self.password)
         return c
 
+    def get_before_prompt(self):
+        items = []
+
+        with self.get_client() as c:
+            if checkin_waiting := c.call('interface.checkin_waiting'):
+                n = int(checkin_waiting)
+                items.append(
+                    'Network interface changes have been applied. Please run `network interface checkin`\n'
+                    f'if the network is still operational or they will be rolled back in {n} seconds.'
+                )
+            elif c.call('interface.has_pending_changes'):
+                items.append(
+                    'You have pending network interface changes. Please run `network interface commit`\n'
+                    'to apply them.'
+                )
+
+        if items:
+            return '\n'.join(items) + '\n'
+
+        return ''
+
     def get_prompt(self, prompt):
         current = self.current_namespace
         path = []
