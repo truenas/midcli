@@ -1,16 +1,33 @@
 # -*- coding=utf-8 -*-
 import errno
+import ipaddress
 import logging
 
-import ipaddress
+from .utils import remove_fields, rows_processor
 
 from middlewared.client import ClientException, ValidationErrors
 
 from midcli.command.generic_call import GenericCallCommand
+from midcli.command.query.command import QueryCommand
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["InterfaceCreateCommand", "InterfaceUpdateCommand"]
+__all__ = ["InterfaceQueryCommand", "InterfaceCreateCommand", "InterfaceUpdateCommand"]
+
+remove_id = remove_fields("id")
+
+
+@rows_processor
+def patch_interface(context, interfaces):
+    for interface in interfaces:
+        interface["aliases"] = [
+            (
+                alias["address"]
+                if {"INET": 32, "INET6": 64}[alias["type"]] == alias["netmask"]
+                else f"{alias['address']}/{alias['netmask']}"
+            )
+            for alias in interface["aliases"]
+        ]
 
 
 class InterfaceCommandMixin:
@@ -57,6 +74,10 @@ class InterfaceCommandMixin:
             }
 
         raise ValueError(f"Unknown address type: {ip_network!r}")
+
+
+class InterfaceQueryCommand(QueryCommand):
+    output_processors = [remove_id, patch_interface]
 
 
 class InterfaceCreateCommand(InterfaceCommandMixin, GenericCallCommand):

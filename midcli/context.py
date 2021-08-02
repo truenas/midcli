@@ -117,6 +117,7 @@ class Namespaces(object):
         'account.group.create': GroupCreateCommand,
         'account.group.update': GroupUpdateCommand,
         'account.group.delete': GroupItemMethodCommand,
+        'network.interface.query': InterfaceQueryCommand,
         'network.interface.create': InterfaceCreateCommand,
         'network.interface.update': InterfaceUpdateCommand,
     }
