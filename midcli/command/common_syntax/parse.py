@@ -31,7 +31,10 @@ string = pp.Regex(r"[a-z][a-z0-9_]*", flags=re.IGNORECASE).setName("string").set
 RE_SIMPLE_STRING = re.compile(r"[a-z][a-z0-9_]*$", flags=re.IGNORECASE)
 json = jsonValue.setName("json")
 
-value = (oct | hex | json | string).setName("value")
+baseValue = (oct | hex | json | string).setName("baseValue")
+baseValueList = (baseValue + pp.OneOrMore((pp.Suppress(",") + baseValue).leaveWhitespace())).leaveWhitespace().setName("baseValueList")
+
+value = (baseValueList | baseValue).setName("value")
 
 arg = value.setResultsName("arg_value", listAllMatches=True) + ~pp.FollowedBy("=")
 kwarg = (
@@ -62,12 +65,21 @@ def parse_arguments(text):
             raise ParseError(format_pyparsing_exception(e))
 
         if "arg_value" in result:
-            args = list(result["arg_value"])
+            args = list(map(get_value, result["arg_value"]))
 
         if "kwarg_name" in result:
-            kwargs = dict(zip(result["kwarg_name"], result["kwarg_value"]))
+            kwargs = dict(zip(result["kwarg_name"], map(get_value, result["kwarg_value"])))
 
     return args, kwargs
+
+
+def get_value(value):
+    if len(value) == 1:
+        # baseValue
+        return value[0]
+    else:
+        # baseValueList
+        return list(value)
 
 
 def get_autocomplete(text):
@@ -79,6 +91,12 @@ def get_autocomplete(text):
     result["rest"] = result["rest"][:-1]
     if not result["rest"]:
         del result["rest"]
+
+    if "arg_value" in result:
+        result["arg_value"] = list(map(get_value, result["arg_value"]))
+
+    if "kwarg_value" in result:
+        result["kwarg_value"] = list(map(get_value, result["kwarg_value"]))
 
     args = len(result.get("arg_value", []))
     kwargs = list(result.get("kwarg_name", []))
