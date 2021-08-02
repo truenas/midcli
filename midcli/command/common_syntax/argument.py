@@ -10,7 +10,7 @@ from midcli.utils.lang import undefined
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["Argument", "BooleanArgument"]
+__all__ = ["Argument", "BooleanArgument", "EnumArgument"]
 
 
 class Argument:
