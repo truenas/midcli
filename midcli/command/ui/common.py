@@ -6,7 +6,7 @@ from midcli.command.interface import Command
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["BackCommand", "LsCommand", "ManCommand", "QuestionCommand"]
+__all__ = ["BackCommand", "ExitCommand", "LsCommand", "ManCommand", "QuestionCommand", "RootCommand"]
 
 
 class BackCommand(Command):
@@ -100,6 +100,16 @@ class QuestionCommand(Command):
             commands.append(i)
 
         print_commands(commands)
+
+
+class RootCommand(Command):
+    builtin = True
+    hidden = True
+    name = "/"
+    description = "Go to the root level"
+
+    def process_input(self, text):
+        self.context.current_namespace = self.context.namespaces.root
 
 
 def print_commands(commands):

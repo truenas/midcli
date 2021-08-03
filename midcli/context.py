@@ -12,7 +12,7 @@ from .command.override.account import *
 from .command.override.interface import *
 from .command.query.command import QueryCommand
 from .command.tools import ShellCommand
-from .command.ui.common import BackCommand, ExitCommand, LsCommand, ManCommand, QuestionCommand
+from .command.ui.common import *
 from .command.ui.display_mode import ModeCommand
 from .display_mode.manager import DisplayModeManager
 from .display_mode.mode.csv import CsvDisplayMode
@@ -35,6 +35,7 @@ class Namespace(object):
             LsCommand(context, self),
             ManCommand(context, self),
             QuestionCommand(context, self),
+            RootCommand(context, self),
             ShellCommand(context, self) if is_main_cli() else None,
             ModeCommand(context, self),
         ]))
