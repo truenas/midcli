@@ -23,7 +23,7 @@ def patch_interface(context, interfaces):
         interface["aliases"] = [
             (
                 alias["address"]
-                if {"INET": 32, "INET6": 64}[alias["type"]] == alias["netmask"]
+                if {"INET": 32, "INET6": 128}[alias["type"]] == alias["netmask"]
                 else f"{alias['address']}/{alias['netmask']}"
             )
             for alias in interface["aliases"]

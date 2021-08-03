@@ -6,7 +6,7 @@ from midcli.command.interface import Command
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["BackCommand", "LsCommand", "QuestionCommand"]
+__all__ = ["BackCommand", "LsCommand", "ManCommand", "QuestionCommand"]
 
 
 class BackCommand(Command):
@@ -51,6 +51,34 @@ class LsCommand(Command):
             commands.append(i)
 
         print_commands(commands)
+
+
+class ManCommand(Command):
+    builtin = True
+    hidden = True
+    name = "man"
+    description = "Show help and examples for specific command"
+
+    def process_input(self, text):
+        path = (text or "").split()
+        if not path:
+            print("Usage: man <command>")
+            return
+
+        command = self.namespace.find(path)
+        if not command:
+            print(f"Command `{' '.join(path)}` not found")
+            return
+
+        if not isinstance(command, Command):
+            print(f"`{' '.join(path)}` is not a command")
+            return
+
+        print((command.man or f"No documentation found for `{' '.join(path)}`").rstrip())
+
+        if command.examples:
+            print('\n' + '\033[1m' + 'Examples' + '\033[0m' + '\n')
+            print(''.join(command.examples).strip())
 
 
 class QuestionCommand(Command):

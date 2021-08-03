@@ -12,7 +12,7 @@ from .command.override.account import *
 from .command.override.interface import *
 from .command.query.command import QueryCommand
 from .command.tools import ShellCommand
-from .command.ui.common import BackCommand, ExitCommand, LsCommand, QuestionCommand
+from .command.ui.common import BackCommand, ExitCommand, LsCommand, ManCommand, QuestionCommand
 from .command.ui.display_mode import ModeCommand
 from .display_mode.manager import DisplayModeManager
 from .display_mode.mode.csv import CsvDisplayMode
@@ -33,6 +33,7 @@ class Namespace(object):
             BackCommand(context, self),
             ExitCommand(context, self),
             LsCommand(context, self),
+            ManCommand(context, self),
             QuestionCommand(context, self),
             ShellCommand(context, self) if is_main_cli() else None,
             ModeCommand(context, self),
@@ -175,7 +176,8 @@ class Namespaces(object):
                 if command == GenericCallCommand:
                     command = UpdateCommand
 
-            command = command(self.context, namespace, name, method['cli_description'], method=method, **kwargs)
+            command = command(self.context, namespace, name, method['cli_description'], method['description'],
+                              method['examples'].get('cli'), method=method, **kwargs)
 
             namespace.add_child(command)
 
