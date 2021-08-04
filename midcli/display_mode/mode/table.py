@@ -1,8 +1,7 @@
 # -*- coding=utf-8 -*-
-import io
 import logging
 
-import tableprint
+from prettytable import PrettyTable
 
 from midcli.utils.lang import undefined
 
@@ -19,14 +18,10 @@ class TableDisplayMode(TableDisplayModeBase, TextMixin):
         if not object:
             return self.display_empty_object()
 
-        table = [[k, self.value_to_text(v)] for k, v in object.items()]
-        file = io.StringIO()
-        tableprint.table(
-            table,
-            width=[max([len(r[0]) for r in table]), max([len(r[1]) for r in table])],
-            out=file,
-        )
-        return file.getvalue()
+        pt = PrettyTable()
+        pt.add_column("key", list(object.keys()), "r")
+        pt.add_column("value", list(map(self.value_to_text, object.values())), "l")
+        return pt.get_string(header=False)
 
     def display_table(self, header, objects):
         table = [
@@ -36,14 +31,12 @@ class TableDisplayMode(TableDisplayModeBase, TextMixin):
             ]
             for object in objects
         ]
-        file = io.StringIO()
-        tableprint.table(
-            table,
-            headers=header,
-            width=[max([len(h)] + [len(row[i]) for row in table]) for i, h in enumerate(header)],
-            out=file,
-        )
-        return file.getvalue()
+        pt = PrettyTable()
+        pt.field_names = header
+        pt.align = "l"
+        for row in table:
+            pt.add_row(row)
+        return pt.get_string()
 
     def display_empty_list(self):
         return "(empty list)"
@@ -58,9 +51,12 @@ class TableDisplayMode(TableDisplayModeBase, TextMixin):
         text = self._value_to_readable_text(value)
 
         if text is not undefined:
-            if len(text) > 64:
-                return f"{text[:61]}..."
+            lines = []
+            for line in text.split("\n"):
+                if len(line) > 64:
+                    line = f"{line[:61]}..."
+                lines.append(line)
 
-            return text
+            return "\n".join(lines)
 
         return f"<{type(value).__name__}>"

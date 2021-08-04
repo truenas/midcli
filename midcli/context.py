@@ -9,9 +9,10 @@ from .command.generic_call import GenericCallCommand
 from .command.generic_call.update import UpdateCommand
 from .command.interface import Command
 from .command.override.account import *
+from .command.override.interface import *
 from .command.query.command import QueryCommand
 from .command.tools import ShellCommand
-from .command.ui.common import BackCommand, ExitCommand, LsCommand, QuestionCommand
+from .command.ui.common import *
 from .command.ui.display_mode import ModeCommand
 from .display_mode.manager import DisplayModeManager
 from .display_mode.mode.csv import CsvDisplayMode
@@ -32,7 +33,9 @@ class Namespace(object):
             BackCommand(context, self),
             ExitCommand(context, self),
             LsCommand(context, self),
+            ManCommand(context, self),
             QuestionCommand(context, self),
+            RootCommand(context, self),
             ShellCommand(context, self) if is_main_cli() else None,
             ModeCommand(context, self),
         ]))
@@ -116,6 +119,9 @@ class Namespaces(object):
         'account.group.create': GroupCreateCommand,
         'account.group.update': GroupUpdateCommand,
         'account.group.delete': GroupItemMethodCommand,
+        'network.interface.query': InterfaceQueryCommand,
+        'network.interface.create': InterfaceCreateCommand,
+        'network.interface.update': InterfaceUpdateCommand,
     }
 
     def __init__(self, context, client):
@@ -171,7 +177,8 @@ class Namespaces(object):
                 if command == GenericCallCommand:
                     command = UpdateCommand
 
-            command = command(self.context, namespace, name, method['cli_description'], method=method, **kwargs)
+            command = command(self.context, namespace, name, method['cli_description'], method['description'],
+                              method['examples'].get('cli'), method=method, **kwargs)
 
             namespace.add_child(command)
 
@@ -202,6 +209,27 @@ class Context(object):
         if self.user and self.password:
             c.call('auth.login', self.user, self.password)
         return c
+
+    def get_before_prompt(self):
+        items = []
+
+        with self.get_client() as c:
+            if checkin_waiting := c.call('interface.checkin_waiting'):
+                n = int(checkin_waiting)
+                items.append(
+                    'Network interface changes have been applied. Please run `network interface checkin`\n'
+                    f'if the network is still operational or they will be rolled back in {n} seconds.'
+                )
+            elif c.call('interface.has_pending_changes'):
+                items.append(
+                    'You have pending network interface changes. Please run `network interface commit`\n'
+                    'to apply them.'
+                )
+
+        if items:
+            return '\n'.join(items) + '\n'
+
+        return ''
 
     def get_prompt(self, prompt):
         current = self.current_namespace

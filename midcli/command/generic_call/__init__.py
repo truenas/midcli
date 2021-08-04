@@ -100,7 +100,25 @@ class GenericCallCommand(CallMixin, CommonSyntaxCommand):
 
                     args.append(args_dict[i])
 
+        if self.method["accepts"]:
+            for i, arg in enumerate(args):
+                if i < len(self.method["accepts"]):
+                    args[i] = self._call_arg(args[i], self.method["accepts"][i])
+
         return args
+
+    def _call_arg(self, arg, schema):
+        # Convert single values to lists for calls like `interface.create aliases="192.168.0.1"`
+        if schema.get("type") == "array" and arg is not None and not isinstance(arg, list):
+            return [arg]
+
+        if schema.get("type") == "object" and schema.get("properties", {}) and isinstance(arg, dict):
+            arg = arg.copy()
+            for k in arg:
+                if k in schema["properties"]:
+                    arg[k] = self._call_arg(arg[k], schema["properties"][k])
+
+        return arg
 
     def run(self, args, kwargs):
         if self.context.editor.is_available() and self._needs_editor(args, kwargs):

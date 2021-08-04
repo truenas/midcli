@@ -47,3 +47,8 @@ def test_yaml_to_args(names, doc, result):
             yaml_to_args(schema, doc)
 
         assert e.value.args[0] == result
+
+
+def test_yaml_to_args_null_object():
+    schema = {"accepts": [{"_name_": "options", "type": "object"}]}
+    assert yaml_to_args(schema, {"options": None}) == [{}]

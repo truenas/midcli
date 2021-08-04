@@ -14,15 +14,15 @@ class Command:
     description = None
     parent = None
 
-    def __init__(self, context, namespace, name=None, description=None, args=None):
+    def __init__(self, context, namespace, name=None, description=None, man=None, examples=None):
         self.context = context
         self.namespace = namespace
         if name:
             self.name = name
         if description:
             self.description = description
-        if args:
-            self.args = args
+        self.man = man
+        self.examples = examples
 
     def __lt__(self, other):
         return self.name < other.name

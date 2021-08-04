@@ -17,10 +17,16 @@ from midcli.command.common_syntax.parse import ParseError, parse_arguments
     ("1 0o10", ([1, 8], {})),
     ("1 null", ([1, None], {})),
     ("1 [1, 2, 3]", ([1, [1, 2, 3]], {})),
+    ("1 1,2,3", ([1, [1, 2, 3]], {})),
+    ("1 1,2, 3", "Expected end of text, found '1'\n"
+                 " 1 1,2, 3\n"
+                 "   ^"),
+    ("1 \"a,b\",\"c, d\"", ([1, ["a,b", "c, d"]], {})),
     ("1 {\"key\": \"value\"} 2", ([1, {"key": "value"}, 2], {})),
     ("1 {\"key\": [\"nested\", {\"value\": 2}]} 3", ([1, {"key": ["nested", {"value": 2}]}, 3], {})),
     ("1 option=2", ([1], {"option": 2})),
     ("1 2 option=3", ([1, 2], {"option": 3})),
+    ("1 2 option=3,4", ([1, 2], {"option": [3, 4]})),
     ("1 2 option=3 another_option=\"4\"", ([1, 2], {"option": 3, "another_option": "4"})),
     ("1 option=2 3", "Expected end of text, found '3'\n"
                      " 1 option=2 3\n"
