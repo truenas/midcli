@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import os
+import signal
 import sys
 import threading
 import time
@@ -139,6 +140,10 @@ class CLI:
 
         run_in_terminal(lambda: None)
 
+    def _sigusr1_handler(self):
+        self.context.reload()
+        self.loop.call_soon_threadsafe(self._repaint_cli)
+
     def run(self):
         if self.command is not None:
             self.context.process_input(self.command)
@@ -154,6 +159,8 @@ class CLI:
 
         self.prompt_app = self._build_cli(history)
         self.loop = asyncio.get_event_loop()
+
+        self.loop.add_signal_handler(signal.SIGUSR1, self._sigusr1_handler)
 
         is_tty1 = False
         try:

@@ -190,15 +190,19 @@ class Context(object):
         self.websocket = websocket
         self.user = user
         self.password = password
+        self.reload()
         with self.get_client() as c:
             self.namespaces = Namespaces(self, c)
-            self.system_info = c.call('system.info')
         self.current_namespace = self.namespaces.root
         self.display_mode_manager = DisplayModeManager({
             "csv": CsvDisplayMode,
             "table": TableDisplayMode,
         }, mode or "table")
         self.editor = editor
+
+    def reload(self):
+        with self.get_client() as c:
+            self.system_info = c.call('system.info')
 
     def get_client(self):
         try:
