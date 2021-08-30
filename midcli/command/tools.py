@@ -1,8 +1,8 @@
 # -*- coding=utf-8 -*-
 import logging
-import os
 
 from midcli.command.interface import Command
+from midcli.utils.shell import spawn_shell
 
 logger = logging.getLogger(__name__)
 
@@ -16,4 +16,4 @@ class ShellCommand(Command):
     description = "Switch to root shell"
 
     def process_input(self, text):
-        os.system("/usr/bin/su -l root")
+        spawn_shell()
