@@ -5,12 +5,16 @@ import sys
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["is_main_cli", "switch_to_shell"]
+__all__ = ["is_main_cli", "spawn_shell", "switch_to_shell"]
 
 
 def is_main_cli():
     # Returns true if we are the instance ran by systemd on primary terminal
     return os.getppid() == 1 or os.environ.get("_IS_MAIN_CLI") == "1"
+
+
+def spawn_shell():
+    os.system("/usr/bin/su -l root")
 
 
 def switch_to_shell():

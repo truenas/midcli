@@ -17,7 +17,7 @@ from .command.ui.display_mode import ModeCommand
 from .display_mode.manager import DisplayModeManager
 from .display_mode.mode.csv import CsvDisplayMode
 from .display_mode.mode.table import TableDisplayMode
-from .utils.shell import is_main_cli
+from .utils.shell import is_main_cli, spawn_shell
 
 
 class Namespace(object):
@@ -205,10 +205,17 @@ class Context(object):
             self.system_info = c.call('system.info')
 
     def get_client(self):
-        try:
-            c = Client(self.websocket)
-        except (FileNotFoundError, ConnectionRefusedError):
-            exit('middlewared is not running.')
+        while True:
+            try:
+                c = Client(self.websocket)
+                break
+            except (FileNotFoundError, ConnectionRefusedError):
+                if is_main_cli():
+                    print('middlewared is not running. Press Enter to open root shell.')
+                    input()
+                    spawn_shell()
+                else:
+                    exit('middlewared is not running.')
 
         if self.user and self.password:
             c.call('auth.login', self.user, self.password)
