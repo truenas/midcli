@@ -1,4 +1,5 @@
 import re
+import socket
 
 from prompt_toolkit import print_formatted_text as print
 from prompt_toolkit.completion import Completion
@@ -209,13 +210,20 @@ class Context(object):
             try:
                 c = Client(self.websocket)
                 break
-            except (FileNotFoundError, ConnectionRefusedError):
+            except Exception as e:
+                if isinstance(e, (FileNotFoundError, ConnectionRefusedError)):
+                    error = 'middleware is not running'
+                elif isinstance(e, socket.timeout):
+                    error = 'middleware is not responding'
+                else:
+                    error = f'Unknown middleware error: {e!r}'
+
                 if is_main_cli():
-                    print('middlewared is not running. Press Enter to open root shell.')
+                    print(f'{error}. Press Enter to open root shell.')
                     input()
                     spawn_shell()
                 else:
-                    exit('middlewared is not running.')
+                    exit(f'{error}.')
 
         if self.user and self.password:
             c.call('auth.login', self.user, self.password)
