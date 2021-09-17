@@ -1,6 +1,7 @@
 # -*- coding=utf-8 -*-
 import copy
 import logging
+import re
 import traceback
 
 from middlewared.client import ClientException, ValidationErrors
@@ -71,7 +72,7 @@ class CallMixin(object):
         if isinstance(e, ClientException):
             if e.error.startswith((
                 "[EFAULT] Too many arguments",
-            )):
+            )) or re.match("\[EFAULT] Command .+ failed \(code", e.error):
                 return "Error: " + e.error.split("] ", 1)[1]
 
             return e.trace["formatted"]
