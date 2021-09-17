@@ -69,6 +69,11 @@ class CallMixin(object):
                     ]))
 
         if isinstance(e, ClientException):
+            if e.error.startswith((
+                "[EFAULT] Too many arguments",
+            )):
+                return "Error: " + e.error.split("] ", 1)[1]
+
             return e.trace["formatted"]
 
         return None
