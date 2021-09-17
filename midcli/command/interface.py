@@ -3,7 +3,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["Command"]
+__all__ = ["Command", "ProcessInputError"]
 
 
 class Command:
@@ -32,3 +32,9 @@ class Command:
 
     def get_completions(self, text):
         raise NotImplementedError
+
+
+class ProcessInputError(Exception):
+    def __init__(self, error):
+        self.error = error
+        super().__init__(error)
