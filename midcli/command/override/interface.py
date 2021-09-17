@@ -20,14 +20,15 @@ remove_id = remove_fields("id")
 @rows_processor
 def patch_interface(context, interfaces):
     for interface in interfaces:
-        interface["aliases"] = [
-            (
-                alias["address"]
-                if {"INET": 32, "INET6": 128}[alias["type"]] == alias["netmask"]
-                else f"{alias['address']}/{alias['netmask']}"
-            )
-            for alias in interface["aliases"]
-        ]
+        if "aliases" in interface:
+            interface["aliases"] = [
+                (
+                    alias["address"]
+                    if {"INET": 32, "INET6": 128}[alias["type"]] == alias["netmask"]
+                    else f"{alias['address']}/{alias['netmask']}"
+                )
+                for alias in interface["aliases"]
+            ]
 
 
 class InterfaceCommandMixin:
