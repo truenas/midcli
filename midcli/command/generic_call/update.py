@@ -35,9 +35,8 @@ class UpdateCommand(GenericCallCommand):
             args = [kwargs.pop(self.method["accepts"][0]["_name_"])]
 
         key = args[0]
-        with self.context.get_client() as c:
-            object = c.call(".".join(self.method["name"].split(".")[:-1] + ["get_instance"]),
-                            self._get_instance_call_arg(args[0]))
+        object = self._call_util(".".join(self.method["name"].split(".")[:-1] + ["get_instance"]),
+                                 self._get_instance_call_arg(args[0]))
 
         for name, property in schema["properties"].items():
             if name in object:
