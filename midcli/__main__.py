@@ -19,6 +19,7 @@ from prompt_toolkit.shortcuts import PromptSession, CompleteStyle
 from prompt_toolkit.styles import Style
 
 from .completer import MidCompleter
+from .command.interface import ProcessInputError
 from .context import Context
 from .editor.interactive import InteractiveEditor
 from .editor.noninteractive import NonInteractiveEditor
@@ -146,7 +147,12 @@ class CLI:
 
     def run(self):
         if self.command is not None:
-            self.context.process_input(self.command)
+            try:
+                self.context.process_input(self.command)
+            except ProcessInputError as e:
+                sys.stderr.write(e.error.rstrip("\n") + "\n")
+                sys.exit(1)
+
             return
 
         if self._should_switch_to_shell():
@@ -185,7 +191,10 @@ class CLI:
                 except KeyboardInterrupt:
                     continue
 
-                self.context.process_input(text)
+                try:
+                    self.context.process_input(text)
+                except ProcessInputError as e:
+                    print(e.error.rstrip("\n") + "\n")
         except EOFError:
             os._exit(0)
 

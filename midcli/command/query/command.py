@@ -2,7 +2,7 @@
 import logging
 
 from midcli.command.call_mixin import CallMixin
-from midcli.command.interface import Command
+from midcli.command.interface import Command, ProcessInputError
 
 from .completions import get_completions
 from .parse import ParseError, parse
@@ -21,8 +21,7 @@ class QueryCommand(CallMixin, Command):
         try:
             parsed = parse(text or "")
         except ParseError as e:
-            print(e.args[0])
-            return
+            raise ProcessInputError(e.args[0])
 
         self.call(self.method["name"], parsed.filters, parsed.options)
 

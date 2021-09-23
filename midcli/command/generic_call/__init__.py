@@ -7,6 +7,7 @@ from middlewared.client import ClientException, ValidationErrors
 from midcli.command.call_mixin import CallMixin
 from midcli.command.common_syntax.argument import Argument, BooleanArgument, EnumArgument
 from midcli.command.common_syntax.command import CommonSyntaxCommand
+from midcli.command.interface import ProcessInputError
 from midcli.utils.lang import undefined
 
 logger = logging.getLogger(__name__)
@@ -161,7 +162,6 @@ class GenericCallCommand(CallMixin, CommonSyntaxCommand):
         try:
             call_args = self._call_args(args, kwargs)
         except CallArgsError as e:
-            print(e.args[0])
-            return
+            raise ProcessInputError(e.args[0])
 
         self.call(self.method["name"], *call_args, job=self.method["job"])
