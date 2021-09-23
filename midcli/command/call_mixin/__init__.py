@@ -70,12 +70,13 @@ class CallMixin(object):
                     ]))
 
         if isinstance(e, ClientException):
-            if e.error.startswith((
-                "[EFAULT] Too many arguments",
-            )) or re.match("\[EFAULT] Command .+ failed \(code", e.error):
-                return "Error: " + e.error.split("] ", 1)[1]
-
-            return e.trace["formatted"]
+            if self.context.stacks:
+                return e.trace["formatted"]
+            else:
+                if e.trace["class"] == "CallError":
+                    return "Error: " + e.error.split("] ", 1)[1]
+                else:
+                    return "Error: " + e.trace["repr"]
 
         return None
 
