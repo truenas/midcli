@@ -8,7 +8,7 @@ from middlewared.client import Client
 
 from .command.generic_call import GenericCallCommand
 from .command.generic_call.update import UpdateCommand
-from .command.interface import Command, ProcessInputError
+from .command.interface import Command
 from .command.override.account import *
 from .command.override.interface import *
 from .command.query.command import QueryCommand
@@ -77,10 +77,7 @@ class Namespace(object):
                         return i.process_input(rest)
                     return i
                 elif isinstance(i, Command):
-                    try:
-                        i.process_input(rest)
-                    except ProcessInputError as e:
-                        print(e.error)
+                    i.process_input(rest)
                     return
 
         print(f"Namespace {name} not found")

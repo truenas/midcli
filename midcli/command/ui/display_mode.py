@@ -1,7 +1,7 @@
 # -*- coding=utf-8 -*-
 import logging
 
-from midcli.command.interface import Command
+from midcli.command.interface import Command, ProcessInputError
 
 logger = logging.getLogger(__name__)
 
@@ -22,4 +22,4 @@ class ModeCommand(Command):
         try:
             self.context.display_mode_manager.set_mode(text)
         except ValueError as e:
-            print(f"Error: {e.args[0]}")
+            raise ProcessInputError(f"Error: {e.args[0]}")

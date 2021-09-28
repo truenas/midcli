@@ -45,9 +45,9 @@ class CallMixin(object):
                 raise
 
             if (error := self._handle_error(e)) is not None:
-                print(error)
+                raise ProcessInputError(error)
             else:
-                traceback.print_exc()
+                raise ProcessInputError(traceback.format_exc())
         else:
             if self.output:
                 print(self.context.display_mode_manager.mode.display(rv))
