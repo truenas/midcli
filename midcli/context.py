@@ -15,6 +15,7 @@ from .command.query.command import QueryCommand
 from .command.tools import ShellCommand
 from .command.ui.common import *
 from .command.ui.display_mode import ModeCommand
+from .command.ui.stacks import StacksCommand
 from .display_mode.manager import DisplayModeManager
 from .display_mode.mode.csv import CsvDisplayMode
 from .display_mode.mode.table import TableDisplayMode
@@ -39,6 +40,7 @@ class Namespace(object):
             RootCommand(context, self),
             ShellCommand(context, self) if is_main_cli() else None,
             ModeCommand(context, self),
+            StacksCommand(context, self),
         ]))
 
     def __repr__(self):
@@ -189,7 +191,7 @@ class Namespaces(object):
 
 class Context(object):
 
-    def __init__(self, cli, websocket, user, password, editor, mode):
+    def __init__(self, cli, websocket, user, password, editor, mode, stacks):
         self.cli = cli
         self.websocket = websocket
         self.user = user
@@ -202,6 +204,7 @@ class Context(object):
             "csv": CsvDisplayMode,
             "table": TableDisplayMode,
         }, mode or "table")
+        self.stacks = stacks
         self.editor = editor
 
     def reload(self):
