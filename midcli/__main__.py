@@ -19,6 +19,7 @@ from prompt_toolkit.shortcuts import PromptSession, CompleteStyle
 from prompt_toolkit.styles import Style
 
 from .completer import MidCompleter
+from .command.interface import ProcessInputError
 from .context import Context
 from .editor.interactive import InteractiveEditor
 from .editor.noninteractive import NonInteractiveEditor
@@ -33,7 +34,7 @@ class CLI:
     default_prompt = '[%h]%_n> '
 
     def __init__(self, websocket=None, user=None, password=None, command=None, interactive=None, menu=False,
-                 mode=None, print_template=False):
+                 mode=None, stacks=False, print_template=False):
         if command is None or interactive:
             editor = InteractiveEditor()
         elif print_template:
@@ -42,7 +43,7 @@ class CLI:
             editor = NonInteractiveEditor()
 
         self.context = Context(self, websocket=websocket, user=user, password=password,
-                               editor=editor, menu=menu, mode=mode)
+                               editor=editor, menu=menu, mode=mode, stacks=stacks)
         self.command = command
         self.completer = MidCompleter(self.context)
 
@@ -168,7 +169,12 @@ class CLI:
 
     def run(self):
         if self.command is not None:
-            self.context.process_input(self.command)
+            try:
+                self.context.process_input(self.command)
+            except ProcessInputError as e:
+                sys.stderr.write(e.error.rstrip("\n") + "\n")
+                sys.exit(1)
+
             return
 
         if self._should_switch_to_shell():
@@ -217,7 +223,10 @@ class CLI:
                     except KeyboardInterrupt:
                         continue
 
-                    self.context.process_input(text)
+                    try:
+                        self.context.process_input(text)
+                    except ProcessInputError as e:
+                        print(e.error.rstrip("\n") + "\n")
         except EOFError:
             os._exit(0)
 
@@ -237,6 +246,8 @@ def main():
                         help='Output display mode')
     parser.add_argument('--print-template', action='store_true',
                         help='If -c/--command is specified, print its YAML template instead of executing it')
+    parser.add_argument('--stacks', action='store_true',
+                        help='Display errors stack trace')
     args = parser.parse_args()
 
     cli = CLI(**args.__dict__)

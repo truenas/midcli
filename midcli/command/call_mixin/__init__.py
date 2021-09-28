@@ -28,7 +28,7 @@ class CallMixin(object):
         """
         return args
 
-    def call(self, name, *args, job=False, raise_=False):
+    def call(self, name, *args, job=False, output_processor=None, raise_=False):
         try:
             args = self._process_call_args(copy.deepcopy(args))
 
@@ -37,14 +37,17 @@ class CallMixin(object):
 
             for op in self.output_processors:
                 rv = op(self.context, rv)
+
+            if output_processor is not None:
+                rv = output_processor(rv)
         except Exception as e:
             if raise_:
                 raise
 
             if (error := self._handle_error(e)) is not None:
-                print(error)
+                raise ProcessInputError(error)
             else:
-                traceback.print_exc()
+                raise ProcessInputError(traceback.format_exc())
         else:
             if self.output:
                 print(self.context.display_mode_manager.mode.display(rv))
@@ -70,19 +73,20 @@ class CallMixin(object):
                     ]))
 
         if isinstance(e, ClientException):
-            if e.error.startswith((
-                "[EFAULT] Too many arguments",
-            )) or re.match("\[EFAULT] Command .+ failed \(code", e.error):
-                return "Error: " + e.error.split("] ", 1)[1]
-
-            return e.trace["formatted"]
+            if self.context.stacks:
+                return e.trace["formatted"]
+            else:
+                if e.trace["class"] == "CallError":
+                    return "Error: " + e.error.split("] ", 1)[1]
+                else:
+                    return "Error: " + e.trace["repr"]
 
         return None
 
     def _job_callback(self, job):
-        description = job["progress"]["description"]
+        text = f"[{int(job['progress']['percent'])}%] {job['progress']['description'] or ''}..."
 
-        if description is not None and description != self.job_last_printed_description:
-            print(description)
+        if text != self.job_last_printed_description:
+            print(text)
 
-        self.job_last_printed_description = description
+        self.job_last_printed_description = text

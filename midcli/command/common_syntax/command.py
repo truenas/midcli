@@ -3,7 +3,7 @@ import logging
 
 from prompt_toolkit.completion import Completion
 
-from midcli.command.interface import Command
+from midcli.command.interface import Command, ProcessInputError
 
 from .parse import AutocompleteName, AutocompleteValue, ParseError, parse_arguments, get_autocomplete
 
@@ -19,8 +19,7 @@ class CommonSyntaxCommand(Command):
         try:
             args, kwargs = parse_arguments(text)
         except ParseError as e:
-            print(e.args[0])
-            return
+            raise ProcessInputError(e.args[0])
 
         self.run(args, kwargs)
 

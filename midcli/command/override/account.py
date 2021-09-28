@@ -34,11 +34,10 @@ def patch_users(context, users):
         }
 
     for user in users:
-        if "group" in user:
-            user["group"].pop("id")
-            user["group"] = {k[len("bsdgrp_"):]: v for k, v in user["group"].items()}
-        if "groups" in user:
-            user["groups"] = [groups[id] for id in user["groups"]]
+        user["group"].pop("id")
+        user["group"] = {k[len("bsdgrp_"):]: v for k, v in user["group"].items()}
+
+        user["groups"] = [groups[id] for id in user["groups"]]
 
 
 class AccountQueryCommand(QueryCommand):
@@ -165,8 +164,7 @@ def patch_groups(context, groups):
             if k in group
         }
 
-        if "users" in group:
-            group["users"] = [users[id] for id in group["users"]]
+        group["users"] = [users[id] for id in group["users"]]
 
 
 class GroupQueryCommand(QueryCommand):

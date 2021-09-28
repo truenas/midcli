@@ -8,13 +8,14 @@ from middlewared.client import Client
 
 from .command.generic_call import GenericCallCommand
 from .command.generic_call.update import UpdateCommand
-from .command.interface import Command, ProcessInputError
+from .command.interface import Command
 from .command.override.account import *
 from .command.override.interface import *
 from .command.query.command import QueryCommand
 from .command.tools import ShellCommand
 from .command.ui.common import *
 from .command.ui.display_mode import ModeCommand
+from .command.ui.stacks import StacksCommand
 from .display_mode.manager import DisplayModeManager
 from .display_mode.mode.csv import CsvDisplayMode
 from .display_mode.mode.table import TableDisplayMode
@@ -40,6 +41,7 @@ class Namespace(object):
             RootCommand(context, self),
             ShellCommand(context, self) if is_main_cli() else None,
             ModeCommand(context, self),
+            StacksCommand(context, self),
         ]))
 
     def __repr__(self):
@@ -76,10 +78,7 @@ class Namespace(object):
                         return i.process_input(rest)
                     return i
                 elif isinstance(i, Command):
-                    try:
-                        i.process_input(rest)
-                    except ProcessInputError as e:
-                        print(e.error)
+                    i.process_input(rest)
                     return
 
         print(f"Namespace {name} not found")
@@ -190,7 +189,7 @@ class Namespaces(object):
 
 class Context(object):
 
-    def __init__(self, cli, websocket, user, password, editor, menu, mode):
+    def __init__(self, cli, websocket, user, password, editor, menu, mode, stacks):
         self.cli = cli
         self.websocket = websocket
         self.user = user
@@ -203,6 +202,7 @@ class Context(object):
             "csv": CsvDisplayMode,
             "table": TableDisplayMode,
         }, mode or "table")
+        self.stacks = stacks
         self.editor = editor
         self.menu = menu
 
