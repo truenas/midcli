@@ -23,6 +23,7 @@ from .context import Context
 from .editor.interactive import InteractiveEditor
 from .editor.noninteractive import NonInteractiveEditor
 from .editor.print_template import PrintTemplateEditor
+from .menu.items import menu_items, process_menu_item
 from .key_bindings import get_key_bindings
 from .utils.shell import is_main_cli, switch_to_shell
 
@@ -31,7 +32,7 @@ class CLI:
 
     default_prompt = '[%h]%_n> '
 
-    def __init__(self, websocket=None, user=None, password=None, command=None, interactive=None,
+    def __init__(self, websocket=None, user=None, password=None, command=None, interactive=None, menu=False,
                  mode=None, print_template=False):
         if command is None or interactive:
             editor = InteractiveEditor()
@@ -41,12 +42,32 @@ class CLI:
             editor = NonInteractiveEditor()
 
         self.context = Context(self, websocket=websocket, user=user, password=password,
-                               editor=editor, mode=mode)
+                               editor=editor, menu=menu, mode=mode)
         self.command = command
         self.completer = MidCompleter(self.context)
 
         self.last_kernel_message = None
         self.loop = None
+
+    def _build_menu(self):
+        def get_message():
+            prompt = '\n'.join([
+                f'{i}) {title}'
+                for i, (title, _) in enumerate(menu_items, start=1)
+            ]) + f'\n\nEnter an option from 1-{len(menu_items)}: '
+            return [
+                ('class:prompt', prompt),
+            ]
+
+        prompt_app = PromptSession(
+            message=get_message,
+            complete_style=CompleteStyle.COLUMN,
+            editing_mode=EditingMode.VI,
+            enable_system_prompt=True,
+            enable_suspend=True,
+        )
+
+        return prompt_app
 
     def _build_cli(self, history):
         def get_message():
@@ -88,8 +109,9 @@ class CLI:
     def _show_banner(self):
         self._show_urls()
 
-        print('Type "help" to list available commands.')
-        print()
+        if not self.context.menu:
+            print('Type "help" to list available commands.')
+            print()
 
     def _show_urls(self):
         with self.context.get_client() as c:
@@ -157,7 +179,6 @@ class CLI:
         history_file = '~/.midcli.hist'
         history = FileHistory(os.path.expanduser(history_file))
 
-        self.prompt_app = self._build_cli(history)
         self.loop = asyncio.get_event_loop()
 
         self.loop.add_signal_handler(signal.SIGUSR1, self._sigusr1_handler)
@@ -179,13 +200,24 @@ class CLI:
             self._show_banner()
 
         try:
-            while True:
-                try:
-                    text = self.prompt_app.prompt()
-                except KeyboardInterrupt:
-                    continue
+            menu_app = self._build_menu()
+            prompt_app = self._build_cli(history)
 
-                self.context.process_input(text)
+            while True:
+                if self.context.menu:
+                    try:
+                        text = menu_app.prompt()
+                    except KeyboardInterrupt:
+                        continue
+
+                    process_menu_item(self.context, text)
+                else:
+                    try:
+                        text = prompt_app.prompt()
+                    except KeyboardInterrupt:
+                        continue
+
+                    self.context.process_input(text)
         except EOFError:
             os._exit(0)
 
@@ -196,9 +228,11 @@ def main():
     parser.add_argument('--user')
     parser.add_argument('--password')
     parser.add_argument('-c', '--command',
-                        help='Single command to execute')
+                        help='Execute single command')
     parser.add_argument('-i', '--interactive', action='store_true',
                         help='If -c/--command is specified, execute it in interactive mode')
+    parser.add_argument('--menu', action='store_true',
+                        help='Show shortcut menu')
     parser.add_argument('-m', '--mode',
                         help='Output display mode')
     parser.add_argument('--print-template', action='store_true',
