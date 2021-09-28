@@ -36,6 +36,7 @@ class Namespace(object):
             ExitCommand(context, self),
             LsCommand(context, self),
             ManCommand(context, self),
+            MenuCommand(context, self),
             QuestionCommand(context, self),
             RootCommand(context, self),
             ShellCommand(context, self) if is_main_cli() else None,
@@ -188,7 +189,7 @@ class Namespaces(object):
 
 class Context(object):
 
-    def __init__(self, cli, websocket, user, password, editor, mode, stacks):
+    def __init__(self, cli, websocket, user, password, editor, menu, mode, stacks):
         self.cli = cli
         self.websocket = websocket
         self.user = user
@@ -203,6 +204,7 @@ class Context(object):
         }, mode or "table")
         self.stacks = stacks
         self.editor = editor
+        self.menu = menu
 
     def reload(self):
         with self.get_client() as c:

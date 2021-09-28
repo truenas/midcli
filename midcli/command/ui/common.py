@@ -6,7 +6,7 @@ from midcli.command.interface import Command
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["BackCommand", "ExitCommand", "LsCommand", "ManCommand", "QuestionCommand", "RootCommand"]
+__all__ = ["BackCommand", "ExitCommand", "LsCommand", "ManCommand", "MenuCommand", "QuestionCommand", "RootCommand"]
 
 
 class BackCommand(Command):
@@ -79,6 +79,16 @@ class ManCommand(Command):
         if command.examples:
             print('\n' + '\033[1m' + 'Examples' + '\033[0m' + '\n')
             print(''.join(command.examples).strip())
+
+
+class MenuCommand(Command):
+    builtin = True
+    hidden = True
+    name = "menu"
+    description = "Show menu with the most frequently-used shortcuts"
+
+    def process_input(self, text):
+        self.context.menu = True
 
 
 class QuestionCommand(Command):
