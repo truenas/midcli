@@ -28,7 +28,7 @@ class CallMixin(object):
         """
         return args
 
-    def call(self, name, *args, job=False, raise_=False):
+    def call(self, name, *args, job=False, output_processor=None, raise_=False):
         try:
             args = self._process_call_args(copy.deepcopy(args))
 
@@ -37,6 +37,9 @@ class CallMixin(object):
 
             for op in self.output_processors:
                 rv = op(self.context, rv)
+
+            if output_processor is not None:
+                rv = output_processor(rv)
         except Exception as e:
             if raise_:
                 raise
