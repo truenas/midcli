@@ -153,7 +153,7 @@ class GenericCallCommand(CallMixin, CommonSyntaxCommand):
                 else:
                     return
             except ClientException as e:
-                if self.context.editor.on_error("Error", e.error):
+                if self.context.editor.on_error("Error", self._handle_error(e)):
                     continue
                 else:
                     return
