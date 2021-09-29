@@ -3,6 +3,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from midcli.command.interface import ProcessInputError
 from midcli.command.generic_call import GenericCallCommand
 
 SCHEMA = {
@@ -15,14 +16,16 @@ SCHEMA = {
 @pytest.mark.parametrize("text,call_args", [
     ("", []),
 ])
-def test_call_kwargs(text, call_args, capsys):
+def test_call_kwargs(text, call_args):
     command = GenericCallCommand(Mock(), Mock(), "create", None, "user.create", method=SCHEMA, splice_kwargs=None)
     command._run_with_editor = Mock(side_effect=RuntimeError("Interactive run attempt"))
     command.call = Mock()
-    command.process_input(text)
     if isinstance(call_args, str):
+        with pytest.raises(ProcessInputError) as e:
+            command.process_input(text)
+
         command.call.assert_not_called()
-        assert capsys.readouterr().out.rstrip() == call_args
+        assert e.value.error == call_args
     else:
-        assert capsys.readouterr().out == ""
+        command.process_input(text)
         command.call.assert_called_once_with("service.method", *call_args, job=False)
