@@ -8,6 +8,7 @@ from midcli.command.call_mixin import CallMixin
 from midcli.command.common_syntax.argument import Argument, BooleanArgument, EnumArgument
 from midcli.command.common_syntax.command import CommonSyntaxCommand
 from midcli.command.interface import ProcessInputError
+from midcli.middleware import format_validation_errors
 from midcli.utils.lang import undefined
 
 logger = logging.getLogger(__name__)
@@ -121,14 +122,17 @@ class GenericCallCommand(CallMixin, CommonSyntaxCommand):
 
         return arg
 
-    def run(self, args, kwargs):
-        if self.context.editor.is_available() and self._needs_editor(args, kwargs):
+    def run(self, args, kwargs, interactive):
+        if interactive or self._needs_editor(args, kwargs):
+            if not self.context.editor.is_available():
+                raise ProcessInputError("Interactive command execution requested, but no interactive mode is available")
+
             self._run_with_editor(args, kwargs)
         else:
             self._run_with_args(args, kwargs)
 
     def _needs_editor(self, args, kwargs):
-        return self.method["accepts"] and not (args or kwargs)
+        return False
 
     def _run_with_editor(self, args, kwargs):
         self._run_editor([], [])
@@ -144,10 +148,9 @@ class GenericCallCommand(CallMixin, CommonSyntaxCommand):
                 self.call(self.method["name"], *values, job=self.method["job"], raise_=True)
                 return
             except ValidationErrors as e:
-                errors = e.errors
                 if self.context.editor.on_error(
                     title="Validation Errors",
-                    text="\n".join([f"* {error.attribute}: {error.errmsg}" for error in errors]),
+                    text=format_validation_errors(e),
                 ):
                     continue
                 else:

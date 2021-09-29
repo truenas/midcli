@@ -17,11 +17,11 @@ class CommonSyntaxCommand(Command):
 
     def process_input(self, text):
         try:
-            args, kwargs = parse_arguments(text)
+            args, kwargs, interactive = parse_arguments(text)
         except ParseError as e:
             raise ProcessInputError(e.args[0])
 
-        self.run(args, kwargs)
+        self.run(args, kwargs, interactive)
 
     def get_completions(self, text):
         autocomplete = get_autocomplete(text)
@@ -36,5 +36,5 @@ class CommonSyntaxCommand(Command):
                 if argument.name == autocomplete.name:
                     yield from argument.get_completions(autocomplete.value)
 
-    def run(self, args, kwargs):
+    def run(self, args, kwargs, interactive):
         raise NotImplementedError

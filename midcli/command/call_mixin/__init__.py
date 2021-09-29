@@ -7,6 +7,7 @@ import traceback
 from middlewared.client import ClientException, ValidationErrors
 
 from midcli.command.interface import ProcessInputError
+from midcli.middleware import format_validation_errors
 
 logger = logging.getLogger(__name__)
 
@@ -66,11 +67,12 @@ class CallMixin(object):
 
     def _handle_error(self, e):
         if isinstance(e, ValidationErrors):
-            return ("Validation errors:\n" +
-                    "\n".join([
-                        f"* {error.attribute}: {error.errmsg}" if error.attribute else f"* {error.errmsg}"
-                        for error in e.errors
-                    ]))
+            return (
+                "Validation errors:\n" +
+                format_validation_errors(e) +
+                ("\nHint: Add -- to the end of the command to open an interactive arguments editor"
+                 if any(error.errmsg == "attribute required" for error in e.errors) else "")
+            )
 
         if isinstance(e, ClientException):
             if self.context.stacks:
