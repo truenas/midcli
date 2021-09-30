@@ -195,6 +195,11 @@ class CLI:
         except Exception:
             pass
         if is_tty1:
+            # https://www.freedesktop.org/software/systemd/man/systemd.html#SIGRTMIN+21
+            # SIGRTMIN+21 - Disables display of status messages on the console, as controlled via
+            # systemd.show_status=0 on the kernel command line.
+            os.kill(1, signal.SIGRTMIN + 21)
+
             threading.Thread(target=self._read_kmsg).start()
             threading.Thread(target=self._repaint_cli_after_kernel_messages).start()
 
