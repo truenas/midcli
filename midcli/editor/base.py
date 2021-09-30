@@ -9,7 +9,7 @@ __all__ = ["Editor"]
 class Editor:
     def is_available(self):
         """
-        Should return `False` if editor is not available and we must force a call with CLI-provided arguments.
+        Should return `False` if interactive editor is not available.
         """
         return True
 

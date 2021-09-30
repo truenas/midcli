@@ -57,8 +57,13 @@ RE_KWARG = re.compile(r"\s*(?P<name>[a-z0-9_]+)\s*=\s*(?P<value>.*)$", flags=re.
 def parse_arguments(text):
     args = []
     kwargs = {}
+    interactive = False
 
     if text is not None:
+        if text.split() and text.split()[-1] == "--":
+            text = text.rstrip().rstrip("-")
+            interactive = True
+
         try:
             result = dict(arguments.parseString(text + " ", parseAll=True).items())
         except pp.ParseException as e:
@@ -70,7 +75,7 @@ def parse_arguments(text):
         if "kwarg_name" in result:
             kwargs = dict(zip(result["kwarg_name"], map(get_value, result["kwarg_value"])))
 
-    return args, kwargs
+    return args, kwargs, interactive
 
 
 def get_value(value):

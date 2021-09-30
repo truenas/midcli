@@ -22,5 +22,5 @@ from midcli.command.common_syntax.parse import AutocompleteName, AutocompleteVal
     ("6", AutocompleteName(0, [], "6")),
     ("id=6", AutocompleteValue("id", "6")),
 ])
-def test__parse_arguments(s, result):
+def test__get_autocomplete(s, result):
     assert get_autocomplete(s) == result
