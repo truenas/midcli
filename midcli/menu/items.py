@@ -45,6 +45,7 @@ def reset_configuration(context):
 
 def cli(context):
     context.menu = False
+    context.show_banner()
 
 
 def shell(context):
