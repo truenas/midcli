@@ -122,9 +122,13 @@ class CLI:
                 pass
             else:
                 print()
-                print('The web user interface is at:')
-                for url in urls:
-                    print(url)
+                if urls:
+                    print('The web user interface is at:')
+                    for url in urls:
+                        print(url)
+                else:
+                    print('The web interface could not be accessed.')
+                    print('Please check network configuration.')
                 print()
 
     def _should_switch_to_shell(self):
