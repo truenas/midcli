@@ -9,7 +9,12 @@ def _yesno(question):
 
 
 def configure_network_interfaces(context):
-    print("Sorry, network configuration helpers work still in progress.")
+    context.process_input("network interface")
+    print("[truenas] network interface> man create")
+    context.process_input("man create")
+    print("\n[truenas] network interface> man update")
+    context.process_input("man update")
+    context.menu = False
 
 
 def reset_root_password(context):
