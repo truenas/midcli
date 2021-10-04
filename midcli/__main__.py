@@ -111,8 +111,7 @@ class CLI:
         self._show_urls()
 
         if not self.context.menu:
-            print('Type "help" to list available commands.')
-            print()
+            self.context.show_banner()
 
     def _show_urls(self):
         with self.context.get_client() as c:

@@ -197,7 +197,7 @@ class Context(object):
         self.reload()
         with self.get_client() as c:
             self.namespaces = Namespaces(self, c)
-        self.current_namespace = self.namespaces.root
+        self._current_namespace = self.namespaces.root
         self.display_mode_manager = DisplayModeManager({
             "csv": CsvDisplayMode,
             "table": TableDisplayMode,
@@ -205,6 +205,43 @@ class Context(object):
         self.stacks = stacks
         self.editor = editor
         self.menu = menu
+
+    @property
+    def current_namespace(self):
+        return self._current_namespace
+
+    @current_namespace.setter
+    def current_namespace(self, namespace):
+        self._current_namespace = namespace
+        self.show_banner()
+
+    def show_banner(self):
+        if self._current_namespace == self.namespaces.root:
+            print('Type "ls" (followed by Enter) to list available configuration options')
+        else:
+            names = []
+            ns = self._current_namespace
+            while True:
+                names.insert(0, ns.name)
+                if ns.parent == self.namespaces.root:
+                    break
+                else:
+                    ns = ns.parent
+            name = ' '.join(names)
+
+            commands = []
+            for ns in self._current_namespace.children:
+                if isinstance(ns, Command) and not ns.builtin:
+                    commands.append(ns.name)
+
+            print(f'Type "ls" (followed by Enter) to list available {name} configuration options')
+
+            if commands:
+                command = 'create' if 'create' in commands else commands[0]
+                print('Type "man" (followed by Action) to get help on how to use the specific Action.')
+                print()
+                print('i.e.')
+                print(f'\tman {command}')
 
     def reload(self):
         with self.get_client() as c:
