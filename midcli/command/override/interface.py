@@ -62,14 +62,14 @@ class InterfaceCommandMixin:
         if isinstance(ip_network, ipaddress.IPv4Network):
             return {
                 "type": "INET",
-                "address": str(ip_network.network_address),
+                "address": alias.split("/")[0],
                 "netmask": ip_network.prefixlen,
             }
 
         if isinstance(ip_network, ipaddress.IPv6Network):
             return {
                 "type": "INET6",
-                "address": str(ip_network.network_address),
+                "address": alias.split("/")[0],
                 "netmask": ip_network.prefixlen,
             }
 
