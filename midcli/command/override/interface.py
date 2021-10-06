@@ -1,6 +1,7 @@
 # -*- coding=utf-8 -*-
 import errno
 import ipaddress
+import json
 import logging
 
 from .utils import remove_fields, rows_processor
@@ -19,7 +20,16 @@ remove_id = remove_fields("id")
 
 @rows_processor
 def patch_interface(context, interfaces):
-    for interface in interfaces:
+    for i, interface in enumerate(interfaces):
+        interface["state.aliases"] = [
+            (
+                alias["address"]
+                if {"INET": 32, "INET6": 128}[alias["type"]] == alias["netmask"]
+                else f"{alias['address']}/{alias['netmask']}"
+            )
+            for alias in interface["state"]["aliases"]
+            if alias["type"] in ["INET", "INET6"]
+        ]
         interface["aliases"] = [
             (
                 alias["address"]
@@ -28,6 +38,16 @@ def patch_interface(context, interfaces):
             )
             for alias in interface["aliases"]
         ]
+
+        interface.pop("fake")
+        interface.pop("state")
+
+        interfaces[i] = {
+            "name": interface["name"],
+            "type": interface["type"],
+            **{k: v for k, v in interface.items() if k.startswith("state.")},
+            **{k: v for k, v in interface.items() if not (k in ["name", "type"] or k.startswith("state."))},
+        }
 
 
 class InterfaceCommandMixin:

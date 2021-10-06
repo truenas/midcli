@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 __all__ = ["parse_query_command"]
 
-column = pp.Word(pp.alphas, pp.alphanums + "_").setName("column")
+column = pp.Word(pp.alphas, pp.alphanums + "_.").setName("column")
 all_columns = pp.Literal("*")
 select_expression = pp.delimitedList(column).setResultsName("columns") | all_columns.setResultsName("all_columns")
 
