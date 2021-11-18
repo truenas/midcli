@@ -134,11 +134,9 @@ class Namespaces(object):
         self.build_namespaces(client)
 
     def build_namespaces(self, client):
-        methods = client.call('core.get_methods', None, True)
-        services = client.call('core.get_services', True)
-        for fullname, method in methods.items():
+        for fullname, method in self.context.methods.items():
             service_name, name = fullname.rsplit('.', 1)
-            service = services[service_name]
+            service = self.context.services[service_name]
 
             namespace = self.root
 
@@ -189,13 +187,15 @@ class Namespaces(object):
 
 class Context(object):
 
-    def __init__(self, cli, websocket, user, password, editor, menu, mode, stacks):
+    def __init__(self, cli, websocket, user, password, editor, menu, menu_item, mode, stacks):
         self.cli = cli
         self.websocket = websocket
         self.user = user
         self.password = password
         self.reload()
         with self.get_client() as c:
+            self.methods = c.call('core.get_methods', None, True)
+            self.services = c.call('core.get_services', True)
             self.namespaces = Namespaces(self, c)
         self._current_namespace = self.namespaces.root
         self.display_mode_manager = DisplayModeManager({
@@ -205,6 +205,7 @@ class Context(object):
         self.stacks = stacks
         self.editor = editor
         self.menu = menu
+        self.menu_item = menu_item
 
     @property
     def current_namespace(self):

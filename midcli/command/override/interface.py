@@ -1,7 +1,5 @@
 # -*- coding=utf-8 -*-
 import errno
-import ipaddress
-import json
 import logging
 
 from .utils import remove_fields, rows_processor
@@ -10,6 +8,7 @@ from middlewared.client import ClientException, ValidationErrors
 
 from midcli.command.generic_call import GenericCallCommand
 from midcli.command.query.command import QueryCommand
+from midcli.utils.truenas.interface import alias_to_str, str_to_alias
 
 logger = logging.getLogger(__name__)
 
@@ -22,20 +21,12 @@ remove_id = remove_fields("id")
 def patch_interface(context, interfaces):
     for i, interface in enumerate(interfaces):
         interface["state.aliases"] = [
-            (
-                alias["address"]
-                if {"INET": 32, "INET6": 128}[alias["type"]] == alias["netmask"]
-                else f"{alias['address']}/{alias['netmask']}"
-            )
+            alias_to_str(alias)
             for alias in interface["state"]["aliases"]
             if alias["type"] in ["INET", "INET6"]
         ]
         interface["aliases"] = [
-            (
-                alias["address"]
-                if {"INET": 32, "INET6": 128}[alias["type"]] == alias["netmask"]
-                else f"{alias['address']}/{alias['netmask']}"
-            )
+            alias_to_str(alias)
             for alias in interface["aliases"]
         ]
 
@@ -72,28 +63,9 @@ class InterfaceCommandMixin:
 
     def _process_alias(self, alias):
         if isinstance(alias, str):
-            return self._string_alias_to_object(alias)
+            return str_to_alias(alias)
 
         return alias
-
-    def _string_alias_to_object(self, alias):
-        ip_network = ipaddress.ip_network(alias, strict=False)
-
-        if isinstance(ip_network, ipaddress.IPv4Network):
-            return {
-                "type": "INET",
-                "address": alias.split("/")[0],
-                "netmask": ip_network.prefixlen,
-            }
-
-        if isinstance(ip_network, ipaddress.IPv6Network):
-            return {
-                "type": "INET6",
-                "address": alias.split("/")[0],
-                "netmask": ip_network.prefixlen,
-            }
-
-        raise ValueError(f"Unknown address type: {ip_network!r}")
 
 
 class InterfaceQueryCommand(QueryCommand):

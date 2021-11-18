@@ -34,7 +34,7 @@ class CLI:
     default_prompt = '[%h]%_n> '
 
     def __init__(self, websocket=None, user=None, password=None, command=None, interactive=None, menu=False,
-                 mode=None, stacks=False, print_template=False):
+                 menu_item=None, mode=None, stacks=False, print_template=False):
         if command is None or interactive:
             editor = InteractiveEditor()
         elif print_template:
@@ -43,7 +43,7 @@ class CLI:
             editor = NonInteractiveEditor()
 
         self.context = Context(self, websocket=websocket, user=user, password=password,
-                               editor=editor, menu=menu, mode=mode, stacks=stacks)
+                               editor=editor, menu=menu, menu_item=menu_item, mode=mode, stacks=stacks)
         self.command = command
         self.completer = MidCompleter(self.context)
 
@@ -218,7 +218,10 @@ class CLI:
             prompt_app = self._build_cli(history)
 
             while True:
-                if self.context.menu:
+                if self.context.menu_item:
+                    process_menu_item(self.context, self.context.menu_item)
+                    break
+                elif self.context.menu:
                     try:
                         text = menu_app.prompt()
                     except KeyboardInterrupt:
@@ -250,6 +253,8 @@ def main():
                         help='If -c/--command is specified, execute it in interactive mode')
     parser.add_argument('--menu', action='store_true',
                         help='Show shortcut menu')
+    parser.add_argument('--menu-item',
+                        help='Activate shortcut menu item')
     parser.add_argument('-m', '--mode',
                         help='Output display mode')
     parser.add_argument('--print-template', action='store_true',

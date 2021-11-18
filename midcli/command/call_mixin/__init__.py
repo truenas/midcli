@@ -1,13 +1,12 @@
 # -*- coding=utf-8 -*-
 import copy
 import logging
-import re
 import traceback
 
 from middlewared.client import ClientException, ValidationErrors
 
 from midcli.command.interface import ProcessInputError
-from midcli.middleware import format_validation_errors
+from midcli.middleware import format_error, format_validation_errors
 
 logger = logging.getLogger(__name__)
 
@@ -75,13 +74,7 @@ class CallMixin(object):
             )
 
         if isinstance(e, ClientException):
-            if self.context.stacks:
-                return e.trace["formatted"]
-            else:
-                if e.trace["class"] == "CallError":
-                    return "Error: " + e.error.split("] ", 1)[1]
-                else:
-                    return "Error: " + e.trace["repr"]
+            return format_error(self.context, e)
 
         return None
 

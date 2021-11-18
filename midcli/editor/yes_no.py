@@ -1,7 +1,7 @@
 # -*- coding=utf-8 -*-
 import logging
 
-from midcli.utils.prompt_toolkit.shortcuts import yes_no_dialog
+from midcli.utils.prompt_toolkit.widgets.shortcuts import yes_no_dialog
 
 logger = logging.getLogger(__name__)
 
