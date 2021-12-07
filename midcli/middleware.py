@@ -1,4 +1,14 @@
-__all__ = ["format_validation_errors"]
+__all__ = ["format_error", "format_validation_errors"]
+
+
+def format_error(context, e):
+    if context.stacks:
+        return e.trace["formatted"]
+    else:
+        if e.trace["class"] == "CallError":
+            return "Error: " + e.error.split("] ", 1)[1]
+        else:
+            return "Error: " + e.trace["repr"]
 
 
 def format_validation_errors(e):

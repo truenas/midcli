@@ -1,5 +1,7 @@
 import getpass
 
+from midcli.gui.base.app import run_app
+from midcli.gui.network.interface.list import NetworkInterfaceList
 from midcli.utils.shell import spawn_shell
 
 
@@ -9,12 +11,7 @@ def _yesno(question):
 
 
 def configure_network_interfaces(context):
-    context.process_input("network interface")
-    print("[truenas] network interface> man create")
-    context.process_input("man create")
-    print("\n[truenas] network interface> man update")
-    context.process_input("man update")
-    context.menu = False
+    run_app(NetworkInterfaceList(context))
 
 
 def reset_root_password(context):
