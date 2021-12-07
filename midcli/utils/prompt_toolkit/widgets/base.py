@@ -95,8 +95,6 @@ class _DialogList(Generic[_T]):
 
     def __init__(self, values: Sequence[Tuple[_T, AnyFormattedText]], current_values: Optional[_T] = undefined,
                  current_value: Optional[_T] = undefined) -> None:
-        assert len(values) > 0
-
         self.values = values
         # current_values will be used in multiple_selection,
         # current_value will be used otherwise.

@@ -1,6 +1,6 @@
 # -*- coding=utf-8 -*-
 import logging
-from typing import Any, Callable, List, Optional, Tuple, TypeVar
+from typing import Any, List, Optional, Tuple, TypeVar
 
 from prompt_toolkit.application import Application
 from prompt_toolkit.application.current import get_app
@@ -32,7 +32,7 @@ from .base import CheckboxList, RadioList
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["yes_no_dialog", "input_dialog"]
+__all__ = ["yes_no_dialog", "input_dialog", "radiolist_dialog", "checkboxlist_dialog"]
 
 
 def yes_no_dialog(

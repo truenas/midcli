@@ -158,12 +158,14 @@ class List:
             rows.append(row)
             row_line_count.append(line_count)
 
-        footer = "".join(f"+{''.rjust(width + 2, '-')}" for col, width in zip(self.columns, col_width)) + "+"
+        border = "".join(f"+{''.rjust(width + 2, '-')}" for col, width in zip(self.columns, col_width)) + "+"
+
         header = (
-            f"{footer}\n" +
+            f"{border}\n" +
             "".join(f"| {col.rjust(width)} " for col, width in zip(self.columns, col_width)) + "|\n" +
-            footer
+            border
         )
+
         rendered_rows = []
         for row, line_count in zip(rows, row_line_count):
             rendered_row = [""] * line_count
@@ -172,6 +174,8 @@ class List:
                     rendered_row[i] += f"| {(row[j][i] if i < len(row[j]) else '').rjust(width)} "
                 rendered_row[i] += "|"
             rendered_rows.append("\n".join(rendered_row))
+
+        footer = border
 
         return header, rendered_rows, footer
 

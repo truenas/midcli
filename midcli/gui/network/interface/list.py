@@ -19,7 +19,7 @@ from .create_update import NetworkInterfaceCreate, NetworkInterfaceUpdate
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["List"]
+__all__ = ["NetworkInterfaceList"]
 
 
 class NetworkInterfaceList(List):
@@ -90,11 +90,7 @@ class NetworkInterfaceList(List):
 
         async def refresh():
             while True:
-                text = await asyncio.get_running_loop().run_in_executor(None, get_text)
-                if text is None:
-                    label.text = ""
-                else:
-                    label.text = text
+                label.text = await asyncio.get_running_loop().run_in_executor(None, get_text) or ""
 
                 self.app.invalidate()
 

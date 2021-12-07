@@ -9,7 +9,7 @@ from .input_delegate import AliasesInputDelegate
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["NetworkInterfaceCreate"]
+__all__ = ["NetworkInterfaceCreate", "NetworkInterfaceUpdate"]
 
 
 class NetworkInterfaceCreate(Steps):
