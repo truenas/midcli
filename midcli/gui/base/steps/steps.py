@@ -48,13 +48,19 @@ class Steps:
     method = NotImplemented
     primary_key = "id"
 
-    def __init__(self, context, back_app, data=None, errors=None, active_input=None):
+    def __init__(self, context, back_app=None, data=None, errors=None, active_input=None):
         self.context = context
         self.back_app = back_app
         self.data = data or {}
         self.errors = errors or {}
 
-        self.schema = context.methods[f"{self.service}.create"]["accepts"][0]["properties"]
+        if self.method == StepsMethod.CONFIG:
+            self.schema = context.methods[f"{self.service}.update"]["accepts"][0]["properties"]
+            if not self.data:
+                with self.context.get_client() as c:
+                    self.data = c.call(f"{self.service}.config")
+        else:
+            self.schema = context.methods[f"{self.service}.create"]["accepts"][0]["properties"]
 
         widgets, self.focus, complete = self._draw(active_input)
         inputs = list(filter(lambda w: not isinstance(w, Label), widgets))
@@ -267,9 +273,11 @@ class Steps:
             with self.context.get_client() as c:
                 try:
                     if self.method == StepsMethod.CREATE:
-                        c.call("interface.create", data)
+                        c.call(f"{self.service}.create", data)
                     elif self.method == StepsMethod.UPDATE:
-                        c.call("interface.update", self.data[self.primary_key], data)
+                        c.call(f"{self.service}.update", self.data[self.primary_key], data)
+                    elif self.method == StepsMethod.CONFIG:
+                        c.call(f"{self.service}.update", data)
                 except ValidationErrors as e:
                     return self._with_errors({None: format_validation_errors(e)})
                 except ClientException as e:
