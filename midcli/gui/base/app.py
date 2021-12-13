@@ -26,3 +26,6 @@ def run_app(app):
                 app = app.app_factory()
             elif app.app_result_handler:
                 app = app.app_result_handler(app.app.run())
+
+        if app is None:
+            break

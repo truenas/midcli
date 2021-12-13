@@ -1,7 +1,9 @@
 import getpass
 
 from midcli.gui.base.app import run_app
+from midcli.gui.network.configuration import NetworkConfiguration
 from midcli.gui.network.interface.list import NetworkInterfaceList
+from midcli.gui.network.static_route.list import StaticRouteList
 from midcli.utils.shell import spawn_shell
 
 
@@ -12,6 +14,14 @@ def _yesno(question):
 
 def configure_network_interfaces(context):
     run_app(NetworkInterfaceList(context))
+
+
+def configure_network_settings(context):
+    run_app(NetworkConfiguration(context))
+
+
+def configure_static_routes(context):
+    run_app(StaticRouteList(context))
 
 
 def reset_root_password(context):
@@ -66,6 +76,8 @@ def shutdown(context):
 
 menu_items = [
     ("Configure network interfaces", configure_network_interfaces),
+    ("Configure network settings", configure_network_settings),
+    ("Configure static routes", configure_static_routes),
     ("Reset root password", reset_root_password),
     ("Reset configuration to defaults", reset_configuration),
     ("Open TrueNAS CLI Shell", cli),
