@@ -213,6 +213,12 @@ class CLI:
 
             self._show_banner()
 
+        w, h = os.get_terminal_size()
+        if not w or not h:
+            print(f'Invalid terminal size: {w}x{h}. Press any key to exit...')
+            input()
+            os._exit(1)
+
         try:
             menu_app = self._build_menu()
             prompt_app = self._build_cli(history)
