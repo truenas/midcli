@@ -79,7 +79,7 @@ class CallMixin(object):
         return None
 
     def _job_callback(self, job):
-        text = f"[{job['progress']['percent']}%] {job['progress']['description']}..."
+        text = f"[{int(job['progress']['percent'])}%] {job['progress']['description'] or ''}..."
 
         if text != self.job_last_printed_description:
             print(text)
