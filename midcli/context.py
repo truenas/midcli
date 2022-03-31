@@ -194,8 +194,8 @@ class Context(object):
         self.password = password
         self.reload()
         with self.get_client() as c:
-            self.methods = c.call('core.get_methods', None, True)
-            self.services = c.call('core.get_services', True)
+            self.methods = c.call('core.get_methods', None, 'CLI')
+            self.services = c.call('core.get_services', 'CLI')
             self.namespaces = Namespaces(self, c)
         self._current_namespace = self.namespaces.root
         self.display_mode_manager = DisplayModeManager({
