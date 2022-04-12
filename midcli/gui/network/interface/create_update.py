@@ -55,7 +55,6 @@ class NetworkInterfaceCreate(Steps):
 
             result.extend([
                 Header("Other Settings"),
-                Input("disable_offload_capabilities"),
                 Input("mtu"),
             ])
 
