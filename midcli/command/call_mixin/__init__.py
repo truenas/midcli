@@ -49,8 +49,7 @@ class CallMixin(object):
             else:
                 raise ProcessInputError(traceback.format_exc())
         else:
-            if self.output:
-                print(self.context.display_mode_manager.mode.display(rv))
+            self._handle_output(rv)
 
             return rv
 
@@ -77,6 +76,10 @@ class CallMixin(object):
             return format_error(self.context, e)
 
         return None
+
+    def _handle_output(self, rv):
+        if self.output:
+            print(self.context.display_mode_manager.mode.display(rv))
 
     def _job_callback(self, job):
         text = f"[{int(job['progress']['percent'] or 0)}%] {job['progress']['description']}..."
