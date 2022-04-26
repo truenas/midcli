@@ -42,7 +42,7 @@ class NetworkInterfaceCreate(Steps):
             elif data["type"] == "LINK_AGGREGATION":
                 result.append(Header("Link Aggregation Settings"))
                 result.append(Input("lag_protocol", required=True))
-                result.append(Input("lag_ports", enum=c.call("interface.lag_ports_choices"), empty=False))
+                result.append(Input("lag_ports", enum=c.call("interface.lag_ports_choices", data.get("name")), empty=False))
                 result.append(Input("xmit_hash_policy"))
                 result.append(Input("lacpdu_rate"))
             elif data["type"] == "VLAN":
