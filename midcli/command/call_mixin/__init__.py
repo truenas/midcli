@@ -7,6 +7,7 @@ from middlewared.client import ClientException, ValidationErrors
 
 from midcli.command.interface import ProcessInputError
 from midcli.middleware import format_error, format_validation_errors
+from midcli.pager import echo_via_pager
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +80,7 @@ class CallMixin(object):
 
     def _handle_output(self, rv):
         if self.output:
-            print(self.context.display_mode_manager.mode.display(rv))
+            echo_via_pager(self.context.display_mode_manager.mode.display(rv))
 
     def _job_callback(self, job):
         text = f"[{int(job['progress']['percent'] or 0)}%] {job['progress']['description']}..."
