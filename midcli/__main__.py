@@ -33,7 +33,7 @@ class CLI:
 
     default_prompt = '[%h]%_n> '
 
-    def __init__(self, websocket=None, user=None, password=None, command=None, interactive=None, menu=False,
+    def __init__(self, url=None, user=None, password=None, timeout=None, command=None, interactive=None, menu=False,
                  menu_item=None, mode=None, stacks=False, print_template=False):
         if command is None or interactive:
             editor = InteractiveEditor()
@@ -42,7 +42,7 @@ class CLI:
         else:
             editor = NonInteractiveEditor()
 
-        self.context = Context(self, websocket=websocket, user=user, password=password,
+        self.context = Context(self, url=url, user=user, password=password, timeout=timeout,
                                editor=editor, menu=menu, menu_item=menu_item, mode=mode, stacks=stacks)
         self.command = command
         self.completer = MidCompleter(self.context)
@@ -244,9 +244,11 @@ class CLI:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--websocket')
+    parser.add_argument('--url')
     parser.add_argument('--user')
     parser.add_argument('--password')
+    parser.add_argument('--timeout', type=int, default=1200,
+                        help='Timeout for executing non-job commands (in seconds)')
     parser.add_argument('-c', '--command',
                         help='Execute single command')
     parser.add_argument('-i', '--interactive', action='store_true',

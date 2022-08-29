@@ -189,11 +189,12 @@ class Namespaces(object):
 
 class Context(object):
 
-    def __init__(self, cli, websocket, user, password, editor, menu, menu_item, mode, stacks):
+    def __init__(self, cli, url, user, password, timeout, editor, menu, menu_item, mode, stacks):
         self.cli = cli
-        self.websocket = websocket
+        self.url = url
         self.user = user
         self.password = password
+        self.timeout = timeout
         self.reload()
         with self.get_client() as c:
             self.methods = c.call('core.get_methods', None, 'CLI')
@@ -253,7 +254,7 @@ class Context(object):
     def get_client(self):
         while True:
             try:
-                c = Client(self.websocket)
+                c = Client(self.url, call_timeout=self.timeout)
                 break
             except Exception as e:
                 if isinstance(e, (FileNotFoundError, ConnectionRefusedError)):
