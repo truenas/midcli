@@ -203,8 +203,8 @@ class CLI:
             # systemd.show_status=0 on the kernel command line.
             os.kill(1, signal.SIGRTMIN + 21)
 
-            threading.Thread(target=self._read_kmsg).start()
-            threading.Thread(target=self._repaint_cli_after_kernel_messages).start()
+            threading.Thread(daemon=True, target=self._read_kmsg).start()
+            threading.Thread(daemon=True, target=self._repaint_cli_after_kernel_messages).start()
 
         if is_main_cli():
             print()
