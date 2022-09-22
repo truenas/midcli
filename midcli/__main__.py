@@ -24,8 +24,9 @@ from .context import Context
 from .editor.interactive import InteractiveEditor
 from .editor.noninteractive import NonInteractiveEditor
 from .editor.print_template import PrintTemplateEditor
-from .menu.items import menu_items, process_menu_item
 from .key_bindings import get_key_bindings
+from .menu.items import menu_items, process_menu_item
+from .pager import enable_pager
 from .utils.shell import is_main_cli, switch_to_shell
 
 
@@ -34,7 +35,7 @@ class CLI:
     default_prompt = '[%h]%_n> '
 
     def __init__(self, url=None, user=None, password=None, timeout=None, command=None, interactive=None, menu=False,
-                 menu_item=None, mode=None, stacks=False, print_template=False):
+                 menu_item=None, mode=None, pager=False, print_template=False, stacks=False):
         if command is None or interactive:
             editor = InteractiveEditor()
         elif print_template:
@@ -42,8 +43,12 @@ class CLI:
         else:
             editor = NonInteractiveEditor()
 
+        if pager:
+            enable_pager()
+
         self.context = Context(self, url=url, user=user, password=password, timeout=timeout,
                                editor=editor, menu=menu, menu_item=menu_item, mode=mode, stacks=stacks)
+
         self.command = command
         self.completer = MidCompleter(self.context)
 
@@ -259,6 +264,8 @@ def main():
                         help='Activate shortcut menu item')
     parser.add_argument('-m', '--mode',
                         help='Output display mode')
+    parser.add_argument('--pager', action='store_true',
+                        help='Use pager to display commands output')
     parser.add_argument('--print-template', action='store_true',
                         help='If -c/--command is specified, print its YAML template instead of executing it')
     parser.add_argument('--stacks', action='store_true',

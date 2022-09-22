@@ -3,6 +3,7 @@ import logging
 import os
 
 from midcli.command.interface import Command
+from midcli.pager import echo_via_pager
 
 logger = logging.getLogger(__name__)
 
@@ -74,11 +75,12 @@ class ManCommand(Command):
             print(f"`{' '.join(path)}` is not a command")
             return
 
-        print((command.man or f"No documentation found for `{' '.join(path)}`").rstrip())
-
+        text = [(command.man or f"No documentation found for `{' '.join(path)}`").rstrip()]
         if command.examples:
-            print('\n' + '\033[1m' + 'Examples' + '\033[0m' + '\n')
-            print(''.join(command.examples).strip())
+            text.append('\n' + '\033[1m' + 'Examples' + '\033[0m' + '\n')
+            text.append(''.join(command.examples).strip())
+
+        echo_via_pager('\n'.join(text))
 
 
 class MenuCommand(Command):
@@ -128,5 +130,7 @@ def print_commands(commands):
 
     max_name_length = max(len(i.name) for i in commands)
 
-    for i in commands:
-        print(i.name + " " * (max_name_length - len(i.name)) + (f" - {i.description}" if i.description else ""))
+    echo_via_pager("\n".join(
+        i.name + " " * (max_name_length - len(i.name)) + (f" - {i.description}" if i.description else "")
+        for i in commands
+    ))
