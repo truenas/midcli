@@ -30,7 +30,7 @@ def create_input_delegate(input, schema):
         return BooleanInputDelegate()
 
     if type == "integer":
-        return IntegerInputDelegate()
+        return IntegerInputDelegate(nullable)
 
     if type == "string":
         return StringInputDelegate()
@@ -101,28 +101,37 @@ class EnumInputDelegate(InputDelegate):
 
 
 class IntegerInputDelegate(InputDelegate):
+    def __init__(self, nullable):
+        self.nullable = nullable
+
     def create_input_app(self, title, text, value):
         return input_dialog(
             title=title,
             text=text,
-            validator=IntegerInputDelegateValidator(),
+            validator=IntegerInputDelegateValidator(self.nullable),
             style=Style.from_dict({
                 "dialog.body text-area": "#ffffff bg:#4444ff",
             }),
-            value=str(value) if value != undefined else "",
+            value=str(value) if value not in [None, undefined] else "",
         )
 
     def display_value(self, value):
-        if value:
+        if value is not None:
             return value
         else:
-            return "<empty string>"
+            return "<not set>"
 
     def handle_value(self, value):
+        if self.nullable and not value:
+            return None
+
         return int(value)
 
 
 class IntegerInputDelegateValidator(Validator):
+    def __init__(self, nullable):
+        self.nullable = nullable
+
     def validate(self, document):
         text = document.text
 
@@ -131,6 +140,9 @@ class IntegerInputDelegateValidator(Validator):
                 int(text)
             except ValueError:
                 raise ValidationError(message="This value should be an integer")
+        else:
+            if not self.nullable:
+                raise ValidationError(message="This value is required")
 
 
 class StringInputDelegate(InputDelegate):
