@@ -1,4 +1,5 @@
 # -*- coding=utf-8 -*-
+import functools
 import logging
 
 from prompt_toolkit.styles import Style
@@ -19,11 +20,16 @@ def split(value):
 
 
 class AliasesInputDelegate(InputDelegate):
+    def __init__(self, netmask=True):
+        self.netmask = netmask
+        self.alias_to_str = functools.partial(alias_to_str, netmask=netmask)
+        self.str_to_alias = functools.partial(str_to_alias, netmask=netmask)
+
     def create_input_app(self, title, text, value):
         return input_dialog(
             title,
-            " ".join(map(alias_to_str, value)) if value != undefined else "",
-            validator=AliasesInputDelegateValidator(),
+            " ".join(map(self.alias_to_str, value)) if value != undefined else "",
+            validator=AliasesInputDelegateValidator(self.netmask),
             style=Style.from_dict({
                 "dialog.body text-area": "#ffffff bg:#4444ff",
             }),
@@ -31,21 +37,24 @@ class AliasesInputDelegate(InputDelegate):
 
     def display_value(self, value):
         if value:
-            return " ".join(map(alias_to_str, value))
+            return " ".join(map(self.alias_to_str, value))
         else:
             return "<empty list>"
 
     def handle_value(self, value):
-        return list(map(str_to_alias, split(value)))
+        return list(map(self.str_to_alias, split(value)))
 
 
 class AliasesInputDelegateValidator(Validator):
+    def __init__(self, netmask=True):
+        self.str_to_alias = functools.partial(str_to_alias, netmask=netmask)
+
     def validate(self, document):
         text = document.text
 
         if text:
             for v in split(text):
                 try:
-                    str_to_alias(v)
+                    self.str_to_alias(v)
                 except ValueError as e:
                     raise ValidationError(message=str(e))

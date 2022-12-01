@@ -20,15 +20,31 @@ class NetworkInterfaceCreate(Steps):
     method = StepsMethod.CREATE
 
     def step1(self, data):
-        return list(filter(None, [
-            Header("Interface Settings"),
-            Input("type") if self.method == StepsMethod.CREATE else None,
+        result = [Header("Interface Settings")]
+
+        if self.method == StepsMethod.CREATE:
+            result.append(Input("type"))
+
+        result.extend([
             Input("name"),
             Input("description"),
             Input("ipv4_dhcp"),
             Input("ipv6_auto"),
             Input("aliases", delegate=AliasesInputDelegate),
-        ]))
+        ])
+
+        with self.context.get_client() as c:
+            if c.call("failover.licensed"):
+                result.extend([
+                    Header("Failover Settings"),
+                    Input("failover_critical"),
+                    Input("failover_group"),
+                    Input("failover_vhid"),
+                    Input("failover_aliases", delegate=lambda: AliasesInputDelegate(netmask=False)),
+                    Input("failover_virtual_aliases", delegate=lambda: AliasesInputDelegate(netmask=False)),
+                ])
+
+        return result
 
     def step2(self, data):
         with self.context.get_client() as c:
@@ -42,7 +58,9 @@ class NetworkInterfaceCreate(Steps):
             elif data["type"] == "LINK_AGGREGATION":
                 result.append(Header("Link Aggregation Settings"))
                 result.append(Input("lag_protocol", required=True))
-                result.append(Input("lag_ports", enum=c.call("interface.lag_ports_choices", data.get("name")), empty=False))
+                result.append(Input("lag_ports",
+                                    enum=c.call("interface.lag_ports_choices", data.get("name")),
+                                    empty=False))
                 result.append(Input("xmit_hash_policy"))
                 result.append(Input("lacpdu_rate"))
             elif data["type"] == "VLAN":
