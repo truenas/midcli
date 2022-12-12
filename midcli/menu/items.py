@@ -24,10 +24,41 @@ def configure_static_routes(context):
     run_app(StaticRouteList(context))
 
 
-def reset_root_password(context):
-    print("Changing password for root")
-    print("This action will disable 2FA")
-    print()
+def manage_local_administrator_password(context):
+    with context.get_client() as c:
+        local_administrators = c.call("privilege.local_administrators")
+
+    user = None
+    username = None
+    if local_administrators:
+        print("Please choose a local administrator to change password:\n")
+        for i, user in enumerate(local_administrators):
+            print(f"{i + 1}) {user['username']}")
+        print()
+        number = input(f"Enter an option from 1-{len(local_administrators)}: ")
+        try:
+            user = local_administrators[int(number) - 1]
+        except (KeyError, ValueError):
+            print("Invalid choice")
+            return
+
+        print(f"Changing password for {user['username']}")
+        print("This action will disable 2FA")
+        print()
+    else:
+        print("Please select Web UI authentication method:\n")
+        print("1) Administrative user (admin)")
+        print("2) Root user (not recommended)")
+        print()
+        number = input(f"Enter an option from 1-2: ")
+        try:
+            username = {"1": "admin", "2": "root"}[number]
+        except KeyError:
+            print("Invalid choice")
+            return
+
+        print(f"Setting up local administrator {username}")
+        print()
 
     while True:
         p1 = getpass.getpass()
@@ -42,12 +73,15 @@ def reset_root_password(context):
 
         break
 
-    print()
-    with context.get_client() as c:
-        user_id = c.call("user.query", [["username", "=", "root"]], {"get": True})["id"]
-        c.call("user.update", user_id, {"password": p1})
-        c.call("auth.twofactor.update", {"enabled": False})
-    print("Password successfully changed.")
+    if user is not None:
+        with context.get_client() as c:
+            c.call("user.update", user["id"], {"password": p1})
+            c.call("auth.twofactor.update", {"enabled": False})
+        print("Password successfully changed.")
+    elif username is not None:
+        with context.get_client() as c:
+            c.call("user.setup_local_administrator", username, p1)
+        print("Local administrator successfully set up.")
 
 
 def reset_configuration(context):
@@ -74,20 +108,28 @@ def shutdown(context):
         context.process_input("system shutdown")
 
 
-menu_items = [
-    ("Configure network interfaces", configure_network_interfaces),
-    ("Configure network settings", configure_network_settings),
-    ("Configure static routes", configure_static_routes),
-    ("Reset root password", reset_root_password),
-    ("Reset configuration to defaults", reset_configuration),
-    ("Open TrueNAS CLI Shell", cli),
-    ("Open Linux Shell", shell),
-    ("Reboot", reboot),
-    ("Shutdown", shutdown),
-]
+def get_menu_items(context):
+    menu_items = [
+        ("Configure network interfaces", configure_network_interfaces),
+        ("Configure network settings", configure_network_settings),
+        ("Configure static routes", configure_static_routes),
+    ]
+    with context.get_client() as c:
+        if c.call("user.has_local_administrator_set_up"):
+            menu_items.append(("Change local administrator password", manage_local_administrator_password))
+        else:
+            menu_items.append(("Set up local administrator", manage_local_administrator_password))
+    menu_items += [
+        ("Reset configuration to defaults", reset_configuration),
+        ("Open TrueNAS CLI Shell", cli),
+        ("Open Linux Shell", shell),
+        ("Reboot", reboot),
+        ("Shutdown", shutdown),
+    ]
+    return menu_items
 
 
-def process_menu_item(context, text):
+def process_menu_item(context, menu_items, text):
     print()
 
     try:
