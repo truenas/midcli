@@ -25,7 +25,7 @@ from .editor.interactive import InteractiveEditor
 from .editor.noninteractive import NonInteractiveEditor
 from .editor.print_template import PrintTemplateEditor
 from .key_bindings import get_key_bindings
-from .menu.items import menu_items, process_menu_item
+from .menu.items import get_menu_items, process_menu_item
 from .pager import enable_pager
 from .utils.shell import is_main_cli, switch_to_shell
 
@@ -55,7 +55,7 @@ class CLI:
         self.last_kernel_message = None
         self.loop = None
 
-    def _build_menu(self):
+    def _build_menu(self, menu_items):
         def get_message():
             prompt = '\n'.join([
                 f'{i}) {title}'
@@ -219,12 +219,13 @@ class CLI:
             self._show_banner()
 
         try:
-            menu_app = self._build_menu()
+            menu_items = get_menu_items(self.context)
+            menu_app = self._build_menu(menu_items)
             prompt_app = self._build_cli(history)
 
             while True:
                 if self.context.menu_item:
-                    process_menu_item(self.context, self.context.menu_item)
+                    process_menu_item(self.context, menu_items, self.context.menu_item)
                     break
                 elif self.context.menu:
                     try:
@@ -232,7 +233,7 @@ class CLI:
                     except KeyboardInterrupt:
                         continue
 
-                    process_menu_item(self.context, text)
+                    process_menu_item(self.context, menu_items, text)
                 else:
                     try:
                         text = prompt_app.prompt()
