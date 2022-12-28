@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 __all__ = ["CallMixin"]
 
 
-class CallMixin(object):
+class CallMixin:
     output_processors = []
 
     def __init__(self, *args, **kwargs):
