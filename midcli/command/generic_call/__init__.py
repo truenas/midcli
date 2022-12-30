@@ -168,3 +168,9 @@ class GenericCallCommand(CallMixin, CommonSyntaxCommand):
             raise ProcessInputError(e.args[0])
 
         self.call(self.method["name"], *call_args, job=self.method["job"])
+
+    def _handle_output(self, rv):
+        if rv is None and not self.method["returns"]:
+            return
+
+        return super()._handle_output(rv)
