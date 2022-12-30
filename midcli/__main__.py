@@ -248,6 +248,15 @@ class CLI:
             os._exit(0)
 
 
+def main_console():
+    """This is called in console_scripts section of setup.py so that
+    we install a binary called "cli_console" so that executing the CLI
+    launching the console directly can be done. This is used by local
+    users that have set their shell to `/usr/bin/cli_console`."""
+    cli = CLI(menu=True)
+    cli.run()
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--url')

@@ -23,6 +23,7 @@ setup(
     entry_points={
         'console_scripts': [
             'cli = midcli.__main__:main',
+            'cli_console = midcli.__main__:main_console',
         ],
     },
 )
