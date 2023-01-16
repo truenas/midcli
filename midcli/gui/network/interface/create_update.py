@@ -20,6 +20,9 @@ class NetworkInterfaceCreate(Steps):
     method = StepsMethod.CREATE
 
     def step1(self, data):
+        with self.context.get_client() as c:
+            failover_licensed = c.call("failover.licensed")
+
         result = [Header("Interface Settings")]
 
         if self.method == StepsMethod.CREATE:
@@ -28,21 +31,23 @@ class NetworkInterfaceCreate(Steps):
         result.extend([
             Input("name"),
             Input("description"),
-            Input("ipv4_dhcp"),
-            Input("ipv6_auto"),
+        ])
+        if not failover_licensed:
+            result.extend([
+                Input("ipv4_dhcp"),
+                Input("ipv6_auto"),
+            ])
+        result.extend([
             Input("aliases", delegate=AliasesInputDelegate),
         ])
-
-        with self.context.get_client() as c:
-            if c.call("failover.licensed"):
-                result.extend([
-                    Header("Failover Settings"),
-                    Input("failover_critical"),
-                    Input("failover_group"),
-                    Input("failover_vhid"),
-                    Input("failover_aliases", delegate=lambda: AliasesInputDelegate(netmask=False)),
-                    Input("failover_virtual_aliases", delegate=lambda: AliasesInputDelegate(netmask=False)),
-                ])
+        if failover_licensed:
+            result.extend([
+                Header("Failover Settings"),
+                Input("failover_critical"),
+                Input("failover_group"),
+                Input("failover_aliases", delegate=lambda: AliasesInputDelegate(netmask=False)),
+                Input("failover_virtual_aliases", delegate=lambda: AliasesInputDelegate(netmask=False)),
+            ])
 
         return result
 
