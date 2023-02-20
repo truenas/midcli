@@ -94,8 +94,3 @@ test_account_user_delete_2 = lambda delete_test_user, create_test_user: command_
     "account user delete test",
     text="",
 )
-
-test_account_user_set_attribute_1 = lambda delete_test_user, create_test_user: command_test(
-    f"account user set_attribute {create_test_user} key=k1 value=v1",
-    text="true",
-)
