@@ -96,4 +96,4 @@ class NetworkInterfaceList(List):
 
                 await asyncio.sleep(1)
 
-        self.app.create_background_task(refresh())
+        self.app.pre_run_callables.append(lambda: self.app.create_background_task(refresh()))
