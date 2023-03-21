@@ -122,22 +122,29 @@ class GenericCallCommand(CallMixin, CommonSyntaxCommand):
 
         return arg
 
-    def run(self, args, kwargs, interactive):
-        if interactive or self._needs_editor(args, kwargs):
+    def _call_kwargs(self, args):
+        kwargs = {}
+        if args.output:
+            kwargs["pipe_output"] = args.output
+
+        return kwargs
+
+    def run(self, args):
+        if args.interactive or self._needs_editor(args.args, args.kwargs):
             if not self.context.editor.is_available():
                 raise ProcessInputError("Interactive command execution requested, but no interactive mode is available")
 
-            self._run_with_editor(args, kwargs)
+            self._run_with_editor(args)
         else:
-            self._run_with_args(args, kwargs)
+            self._run_with_args(args)
 
     def _needs_editor(self, args, kwargs):
         return False
 
-    def _run_with_editor(self, args, kwargs):
-        self._run_editor([], [])
+    def _run_with_editor(self, args):
+        self._run_editor([], [], self._call_kwargs(args))
 
-    def _run_editor(self, values, errors, method=None):
+    def _run_editor(self, values, errors, call_kwargs, method=None):
         schema = method or self.method
         while True:
             values = self.context.editor.edit(schema, values, errors)
@@ -145,7 +152,7 @@ class GenericCallCommand(CallMixin, CommonSyntaxCommand):
                 return
 
             try:
-                self.call(self.method["name"], *values, job=self.method["job"], raise_=True)
+                self.call(self.method["name"], *values, job=self.method["job"], raise_=True, **call_kwargs)
                 return
             except ValidationErrors as e:
                 if self.context.editor.on_error(
@@ -161,13 +168,15 @@ class GenericCallCommand(CallMixin, CommonSyntaxCommand):
                 else:
                     return
 
-    def _run_with_args(self, args, kwargs):
+    def _run_with_args(self, args):
         try:
-            call_args = self._call_args(args, kwargs)
+            call_args = self._call_args(args.args, args.kwargs)
         except CallArgsError as e:
             raise ProcessInputError(e.args[0])
 
-        self.call(self.method["name"], *call_args, job=self.method["job"])
+        call_kwargs = self._call_kwargs(args)
+
+        self.call(self.method["name"], *call_args, job=self.method["job"], **call_kwargs)
 
     def _handle_output(self, rv):
         if rv is None and not self.method["returns"]:
