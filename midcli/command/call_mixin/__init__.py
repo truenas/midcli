@@ -1,7 +1,12 @@
 # -*- coding=utf-8 -*-
 import copy
 import logging
+import os
+import shutil
+import threading
 import traceback
+
+import requests
 
 from middlewared.client import ClientException, ValidationErrors
 
@@ -29,12 +34,30 @@ class CallMixin:
         """
         return args
 
-    def call(self, name, *args, job=False, output_processor=None, raise_=False):
+    def call(self, name, *args, job=False, output_processor=None, pipe_output=None, raise_=False):
         try:
             args = self._process_call_args(copy.deepcopy(args))
 
             with self.context.get_client() as c:
-                rv = c.call(name, *args, job=job, callback=self._job_callback)
+                if job and pipe_output is not None:
+                    if self.context.url and self.context.url.startswith(("ws://", "wss://")):
+                        schema, rest = self.context.url.split("://")
+                        hostname_port = rest.split("/")[0]
+                        http_url = f"http{schema.removeprefix('ws')}://{hostname_port}"
+                    else:
+                        http_url = f"http://127.0.0.1:{c.call('system.general.config')['ui_port']}"
+
+                    with open(pipe_output, "wb") as f:
+                        job_id, download_url = c.call("core.download", name, args, pipe_output)
+                        download_thread = threading.Thread(
+                            daemon=True, target=self._download, args=(http_url + download_url, pipe_output, f),
+                        )
+                        download_thread.start()
+                        rv = c.call("core.job_wait", job_id, job=True, callback=self._job_callback)
+                        download_thread.join()
+                        print(f"[100%] Job output ({os.path.getsize(pipe_output)} bytes) saved at {pipe_output!r}")
+                else:
+                    rv = c.call(name, *args, job=job, callback=self._job_callback)
 
             for op in self.output_processors:
                 rv = op(self.context, rv)
@@ -89,3 +112,11 @@ class CallMixin:
             print(text)
 
         self.job_last_printed_description = text
+
+    def _download(self, url, path, f):
+        try:
+            with requests.get(url, stream=True) as r:
+                r.raise_for_status()
+                shutil.copyfileobj(r.raw, f)
+        except Exception as e:
+            print(f"Error downloading {url!r} to {path!r}: {e!r}")
