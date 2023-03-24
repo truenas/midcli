@@ -4,7 +4,7 @@ import socket
 from prompt_toolkit import print_formatted_text as print
 from prompt_toolkit.completion import Completion
 
-from middlewared.client import Client
+from middlewared.client import Client, ClientException
 
 from .command.generic_call import GenericCallCommand
 from .command.generic_call.update import UpdateCommand
@@ -252,12 +252,15 @@ class Context(object):
         while True:
             try:
                 c = Client(self.url, call_timeout=self.timeout)
+                c.call('auth.me')
                 break
             except Exception as e:
                 if isinstance(e, (FileNotFoundError, ConnectionRefusedError)):
                     error = 'middleware is not running'
                 elif isinstance(e, socket.timeout):
                     error = 'middleware is not responding'
+                elif isinstance(e, ClientException) and e.errno == ClientException.ENOTAUTHENTICATED:
+                    error = 'You are not authorized to use TrueNAS CLI'
                 else:
                     error = f'Unknown middleware error: {e!r}'
 
