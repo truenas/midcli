@@ -270,6 +270,8 @@ class Steps:
                     if input.name in self.data:
                         data[input.name] = self.data[input.name]
 
+            self.process_data(data)
+
             with self.context.get_client() as c:
                 try:
                     if self.method == StepsMethod.CREATE:
@@ -289,6 +291,9 @@ class Steps:
 
     def _back(self):
         self.app.exit(self.back_app)
+
+    def process_data(self, data):
+        pass
 
 
 def input_complete(input: Input, data):
