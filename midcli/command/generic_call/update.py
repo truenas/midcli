@@ -24,19 +24,19 @@ class UpdateCommand(GenericCallCommand):
 
         return super()._call_args(args, kwargs)
 
-    def _run_with_editor(self, args, kwargs):
+    def _run_with_editor(self, args):
         method = copy.deepcopy(self.method)
 
         schema = method["accepts"][1]
         for property in schema["properties"].values():
             property["_required_"] = False
 
-        if len(args) == 0:
-            args = [kwargs.pop(self.method["accepts"][0]["_name_"])]
+        if len(args.args) == 0:
+            args.args = [args.kwargs.pop(self.method["accepts"][0]["_name_"])]
 
-        key = args[0]
+        key = args.args[0]
         object = self._call_util(".".join(self.method["name"].split(".")[:-1] + ["get_instance"]),
-                                 self._get_instance_call_arg(args[0]))
+                                 self._get_instance_call_arg(args.args[0]))
 
         for name, property in schema["properties"].items():
             if name in object:
@@ -45,7 +45,7 @@ class UpdateCommand(GenericCallCommand):
         values = [key, {}]
         errors = []
 
-        self._run_editor(values, errors, method)
+        self._run_editor(values, errors, self._call_kwargs(args), method)
 
     def _get_instance_call_arg(self, arg):
         """

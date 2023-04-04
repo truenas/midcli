@@ -5,7 +5,8 @@ from prompt_toolkit.completion import Completion
 
 from midcli.command.interface import Command, ProcessInputError
 
-from .parse import AutocompleteName, AutocompleteValue, ParseError, parse_arguments, get_autocomplete
+from .parse import (AutocompleteName, AutocompleteValue, ParseError, CommonSyntaxCommandArguments, parse_arguments,
+                    get_autocomplete)
 
 logger = logging.getLogger(__name__)
 
@@ -17,11 +18,11 @@ class CommonSyntaxCommand(Command):
 
     def process_input(self, text):
         try:
-            args, kwargs, interactive = parse_arguments(text)
+            args = parse_arguments(text)
         except ParseError as e:
             raise ProcessInputError(e.args[0])
 
-        self.run(args, kwargs, interactive)
+        self.run(args)
 
     def get_completions(self, text):
         autocomplete = get_autocomplete(text)
@@ -36,5 +37,5 @@ class CommonSyntaxCommand(Command):
                 if argument.name == autocomplete.name:
                     yield from argument.get_completions(autocomplete.value)
 
-    def run(self, args, kwargs, interactive):
+    def run(self, args: CommonSyntaxCommandArguments):
         raise NotImplementedError
