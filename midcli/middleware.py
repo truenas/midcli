@@ -2,7 +2,9 @@ __all__ = ["format_error", "format_validation_errors"]
 
 
 def format_error(context, e):
-    if context.stacks:
+    if e.error == "Pipe 'output' is not open":
+        return "Please, specify the output file name using ' > filename.ext'"
+    elif context.stacks:
         return e.trace["formatted"]
     elif e.trace:
         if e.trace["class"] == "CallError":

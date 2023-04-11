@@ -1,8 +1,10 @@
 # -*- coding=utf-8 -*-
 from collections import namedtuple
+from dataclasses import dataclass
 import functools
 import logging
 import re
+import typing
 
 import pyparsing as pp
 
@@ -11,8 +13,8 @@ from midcli.utils.pyparsing.json import jsonValue
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["AutocompleteName", "AutocompleteValue", "ParseError", "RE_SIMPLE_STRING", "parse_arguments",
-           "get_autocomplete"]
+__all__ = ["AutocompleteName", "AutocompleteValue", "ParseError", "RE_SIMPLE_STRING", "CommonSyntaxCommandArguments",
+           "parse_arguments", "get_autocomplete"]
 
 
 AutocompleteName = namedtuple("AutocompleteName", ["args", "kwargs", "name"])
@@ -48,24 +50,35 @@ arguments = (
     pp.ZeroOrMore(kwarg + pp.FollowedBy(pp.White())).setName("kwargs")
 )
 
+command = (
+    arguments +
+    pp.Optional(pp.Literal("--")).setResultsName("interactive") +
+    pp.Optional(pp.Literal(">") + pp.Word(pp.printables).setResultsName("output"))
+)
+
 autocomplete = arguments + pp.restOfLine.setResultsName("rest")
 
 RE_ARG = re.compile(r"\s*(?P<name>[a-z0-9_]+)$", flags=re.IGNORECASE)
 RE_KWARG = re.compile(r"\s*(?P<name>[a-z0-9_]+)\s*=\s*(?P<value>.*)$", flags=re.IGNORECASE)
 
 
+@dataclass
+class CommonSyntaxCommandArguments:
+    args: []
+    kwargs: {}
+    interactive: bool = False
+    output: typing.Optional[str] = None
+
+
 def parse_arguments(text):
     args = []
     kwargs = {}
     interactive = False
+    output = None
 
     if text is not None:
-        if text.split() and text.split()[-1] == "--":
-            text = text.rstrip().rstrip("-")
-            interactive = True
-
         try:
-            result = dict(arguments.parseString(text + " ", parseAll=True).items())
+            result = dict(command.parseString(text + " ", parseAll=True).items())
         except pp.ParseException as e:
             raise ParseError(format_pyparsing_exception(e))
 
@@ -75,7 +88,13 @@ def parse_arguments(text):
         if "kwarg_name" in result:
             kwargs = dict(zip(result["kwarg_name"], map(get_value, result["kwarg_value"])))
 
-    return args, kwargs, interactive
+        if "interactive" in result:
+            interactive = True
+
+        if "output" in result:
+            output = result["output"]
+
+    return CommonSyntaxCommandArguments(args, kwargs, interactive, output)
 
 
 def get_value(value):

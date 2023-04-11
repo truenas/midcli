@@ -58,7 +58,7 @@ def test_update_call_args(text, is_interactive, call_args):
 
     if is_interactive:
         command.process_input(text)
-        command._run_editor.assert_called_once_with(call_args, ANY, ANY)
+        command._run_editor.assert_called_once_with(call_args, ANY, ANY, ANY)
     else:
         if isinstance(call_args, str):
             with pytest.raises(ProcessInputError) as e:
