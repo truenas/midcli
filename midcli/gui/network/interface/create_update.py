@@ -83,6 +83,14 @@ class NetworkInterfaceCreate(Steps):
 
             return result
 
+    def process_data(self, data):
+        with self.context.get_client() as c:
+            failover_licensed = c.call("failover.licensed")
+
+            if failover_licensed:
+                data["ipv4_dhcp"] = False
+                data["ipv6_auto"] = False
+
 
 class NetworkInterfaceUpdate(NetworkInterfaceCreate):
     title = "Update Network Interface"
