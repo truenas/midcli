@@ -15,7 +15,8 @@ from .utils import remove_fields, rows_processor
 logger = logging.getLogger(__name__)
 
 __all__ = ["AccountQueryCommand", "AccountCreateCommand", "AccountUpdateCommand", "AccountItemMethodCommand",
-           "GroupQueryCommand", "GroupCreateCommand", "GroupUpdateCommand", "GroupItemMethodCommand"]
+           "GroupQueryCommand", "GroupCreateCommand", "GroupUpdateCommand", "GroupItemMethodCommand",
+           "ShellChoicesCommand"]
 
 remove_id = remove_fields("id")
 
@@ -252,4 +253,16 @@ class GroupItemMethodCommand(GroupCommandMixin, GenericCallCommand):
         values = list(values)
         if values:
             values[0] = self._process_key(values[0])
+        return values
+
+
+class ShellChoicesCommand(GroupCommandMixin, GenericCallCommand):
+    def _process_method(self, method):
+        method["accepts"][0]["items"] = [{"type": "integer"}, {"type": "string"}]
+        return method
+
+    def _process_call_args(self, values):
+        values = list(values)
+        if values:
+            values[0] = [self._process_key(v) for v in values[0]]
         return values
