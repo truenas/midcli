@@ -117,7 +117,7 @@ class Namespaces(object):
         'account.user.create': AccountCreateCommand,
         'account.user.update': AccountUpdateCommand,
         'account.user.delete': AccountItemMethodCommand,
-        'account.user.shell_choices': AccountItemMethodCommand,
+        'account.user.shell_choices': ShellChoicesCommand,
         'account.user.set_attribute': AccountItemMethodCommand,
         'account.user.pop_attribute': AccountItemMethodCommand,
         'account.group.query': GroupQueryCommand,
