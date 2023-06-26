@@ -143,10 +143,10 @@ class YamlRenderer(ValuesAwareSchemaVisitor):
     def _comment(self, depth, item, errors, render_title=True):
         prefix = " " * depth * self.indent_width + "# "
 
-        if isinstance(item["type"], list):
+        if isinstance(item.get("type"), list):
             type_title = " | ".join([t.title() for t in item["type"]])
         else:
-            type_title = item["type"].title()
+            type_title = item.get("type", "Parameter").title()
 
         if item.get("description"):
             description = item["description"].rstrip()

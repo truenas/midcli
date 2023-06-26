@@ -42,7 +42,7 @@ class SchemaVisitor:
         return result
 
     def _walk_node(self, name, item, value, context):
-        if item["type"] == "object":
+        if item.get("type") == "object":
             result = []
             for property_name in item["_attrs_order_"]:
                 child = item["properties"][property_name]
@@ -55,7 +55,7 @@ class SchemaVisitor:
                 )))
 
             return self._walk_object_node(name, item, value, context, result)
-        elif item["type"] == "array":
+        elif item.get("type") == "array":
             return self._walk_list_node(name, item, value, context)
         else:
             return self._walk_scalar_node(name, item, value, context)
