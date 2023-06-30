@@ -11,7 +11,7 @@ from prompt_toolkit.application import run_in_terminal
 from prompt_toolkit.completion import DynamicCompleter, ThreadedCompleter
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import HasFocus, IsDone
-from prompt_toolkit.history import FileHistory
+from prompt_toolkit.history import FileHistory, InMemoryHistory
 from prompt_toolkit.layout.processors import (
     ConditionalProcessor, HighlightMatchingBracketProcessor, TabsProcessor,
 )
@@ -31,7 +31,6 @@ from .utils.shell import is_main_cli, switch_to_shell
 
 
 class CLI:
-
     default_prompt = '[%h]%_n> '
 
     def __init__(self, url=None, user=None, password=None, timeout=None, command=None, interactive=None, menu=False,
@@ -190,8 +189,15 @@ class CLI:
             switch_to_shell()
             return
 
-        history_file = '~/.midcli.hist'
-        history = FileHistory(os.path.expanduser(history_file))
+        history_file = os.path.expanduser('~/.midcli.hist')
+        try:
+            with open(history_file, "a"):
+                pass
+
+            history = FileHistory(history_file)
+        except Exception as e:
+            print(f'WARNING: Unable to open history file: {e}')
+            history = InMemoryHistory()
 
         self.loop = asyncio.get_event_loop()
 
