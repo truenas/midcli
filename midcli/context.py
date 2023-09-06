@@ -1,5 +1,6 @@
 import re
 import socket
+import time
 
 from prompt_toolkit import print_formatted_text as print
 from prompt_toolkit.completion import Completion
@@ -250,20 +251,35 @@ class Context(object):
             self.system_info = c.call('system.info')
 
     def get_client(self):
+        recoverable_errors = 0
         while True:
             try:
                 c = Client(self.url, call_timeout=self.timeout)
-                c.call('auth.me')
-                break
+
+                if self.user and self.password:
+                    if not c.call('auth.login', self.user, self.password):
+                        raise Exception("Invalid username or password")
+
+                return c
             except Exception as e:
+                recoverable_error = False
                 if isinstance(e, (FileNotFoundError, ConnectionRefusedError)):
                     error = 'middleware is not running'
                 elif isinstance(e, socket.timeout):
                     error = 'middleware is not responding'
+                    recoverable_error = True
                 elif isinstance(e, ClientException) and e.errno == ClientException.ENOTAUTHENTICATED:
                     error = 'You are not authorized to use TrueNAS CLI'
+                elif isinstance(e, ClientException) and e.error == 'Failed connection handshake':
+                    error = e.error
+                    recoverable_error = True
                 else:
                     error = f'Unknown middleware error: {e!r}'
+
+                if recoverable_error and recoverable_errors < 5:
+                    recoverable_errors += 1
+                    time.sleep(2)
+                    continue
 
                 if is_main_cli():
                     print(f'{error}. Press Enter to open root shell.')
@@ -271,10 +287,6 @@ class Context(object):
                     spawn_shell()
                 else:
                     exit(f'{error}.')
-
-        if self.user and self.password:
-            c.call('auth.login', self.user, self.password)
-        return c
 
     def get_before_prompt(self):
         items = []
