@@ -2,6 +2,7 @@
 import copy
 import logging
 
+from midcli.command.interface import ProcessInputError
 from midcli.editor.yaml.object import property_to_yaml_arg
 
 from . import GenericCallCommand
@@ -32,7 +33,11 @@ class UpdateCommand(GenericCallCommand):
             property["_required_"] = False
 
         if len(args.args) == 0:
-            args.args = [args.kwargs.pop(self.method["accepts"][0]["_name_"])]
+            key = self.method["accepts"][0]["_name_"]
+            try:
+                args.args = [args.kwargs.pop(key)]
+            except KeyError:
+                raise ProcessInputError("Please specify object ID")
 
         key = args.args[0]
         object = self._call_util(".".join(self.method["name"].split(".")[:-1] + ["get_instance"]),
