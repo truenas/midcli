@@ -29,8 +29,8 @@ name = pp.Word(pp.alphas, pp.alphanums + "_").setName("name")
 
 oct = pp.Regex(r"0o[0-7]+", flags=re.IGNORECASE).setName("oct").setParseAction(lambda toks: int(toks[0][2:], 8))
 hex = pp.Regex(r"0x[0-9a-f]+", flags=re.IGNORECASE).setName("hex").setParseAction(lambda toks: int(toks[0][2:], 16))
-string = pp.Regex(r"[a-z][a-z0-9_]*", flags=re.IGNORECASE).setName("string").setParseAction(lambda toks: toks[0])
-RE_SIMPLE_STRING = re.compile(r"[a-z][a-z0-9_]*$", flags=re.IGNORECASE)
+string = pp.Regex(r"[a-z./_@][a-z0-9./_@]*", flags=re.IGNORECASE).setName("string").setParseAction(lambda toks: toks[0])
+RE_SIMPLE_STRING = re.compile(r"[a-z\\./_@][a-z0-9\\./_@]*$", flags=re.IGNORECASE)
 json = jsonValue.setName("json")
 
 baseValue = (oct | hex | json | string).setName("baseValue")
