@@ -48,9 +48,9 @@ def test_parse(text, result):
 
 
 @pytest.mark.parametrize("text,error", [
-    ("* WHERE uid &", ("unexpected EOF while parsing\n"
+    ("* WHERE uid &", ("invalid syntax\n"
                        " uid &\n"
-                       "     ^")),
+                       "^")),
     ("* WHERE uid && 1", ("invalid syntax\n"
                           " uid && 1\n"
                           "      ^")),

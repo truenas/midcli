@@ -42,6 +42,9 @@ from midcli.command.common_syntax.parse import ParseError, CommonSyntaxCommandAr
     ("1 option=2\t-- ", CommonSyntaxCommandArguments([1], {"option": 2}, True)),
     ("1 option=2 > file.tar.gz", CommonSyntaxCommandArguments([1], {"option": 2}, False, "file.tar.gz")),
     ("1 option=2 -- > /root/file.tar.gz", CommonSyntaxCommandArguments([1], {"option": 2}, True, "/root/file.tar.gz")),
+    ("auxsmbconf=\"force group=apps\\nforce user=apps\"", CommonSyntaxCommandArguments([], {
+        "auxsmbconf": "force group=apps\nforce user=apps",
+    })),
 ])
 def test__parse_arguments(s, result):
     if isinstance(result, str):

@@ -10,6 +10,8 @@
 #
 # Updated 9 Aug 2016 - use more current pyparsing constructs/idioms
 #
+import json
+
 json_bnf = """
 object
     { members }
@@ -47,7 +49,7 @@ NULL = make_keyword("null", None)
 
 LBRACK, RBRACK, LBRACE, RBRACE, COLON = map(pp.Suppress, "[]{}:")
 
-jsonString = pp.dblQuotedString().setParseAction(pp.removeQuotes)
+jsonString = pp.dblQuotedString().setParseAction(lambda s, l, t: json.loads(t[0]))
 jsonNumber = ppc.number()
 
 jsonObject = pp.Forward().setName("jsonObject")
