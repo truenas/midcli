@@ -109,7 +109,7 @@ def get_value(value):
 def get_autocomplete(text):
     try:
         result = dict(autocomplete.parseString(text + " ", parseAll=True).items())
-    except pp.ParseException as e:
+    except pp.ParseException:
         return None
 
     result["rest"] = result["rest"][:-1]
