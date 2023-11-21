@@ -1,3 +1,4 @@
+import errno
 import re
 import socket
 
@@ -247,7 +248,7 @@ class Context(object):
 
     def reload(self):
         with self.get_client() as c:
-            self.system_info = c.call('system.info')
+            self.hostname = c.call('system.hostname')
 
     def get_client(self):
         while True:
@@ -280,17 +281,21 @@ class Context(object):
         items = []
 
         with self.get_client() as c:
-            if checkin_waiting := c.call('interface.checkin_waiting'):
-                n = int(checkin_waiting)
-                items.append(
-                    'Network interface changes have been applied. Please run `network interface checkin`\n'
-                    f'if the network is still operational or they will be rolled back in {n} seconds.'
-                )
-            elif c.call('interface.has_pending_changes'):
-                items.append(
-                    'You have pending network interface changes. Please run `network interface commit`\n'
-                    'to apply them.'
-                )
+            try:
+                if checkin_waiting := c.call('interface.checkin_waiting'):
+                    n = int(checkin_waiting)
+                    items.append(
+                        'Network interface changes have been applied. Please run `network interface checkin`\n'
+                        f'if the network is still operational or they will be rolled back in {n} seconds.'
+                    )
+                elif c.call('interface.has_pending_changes'):
+                    items.append(
+                        'You have pending network interface changes. Please run `network interface commit`\n'
+                        'to apply them.'
+                    )
+            except ClientException as e:
+                if e.errno != errno.EACCES:
+                    raise
 
         if items:
             return '\n'.join(items) + '\n'
@@ -307,7 +312,7 @@ class Context(object):
         namespaces = ' '.join(path)
         prompt = prompt.replace('%n', namespaces)
         prompt = prompt.replace('%_n', f' {namespaces}' if namespaces else '')
-        prompt = prompt.replace('%h', self.system_info['hostname'].split('.', 1)[0])
+        prompt = prompt.replace('%h', self.hostname.split('.', 1)[0])
         return prompt
 
     def process_input(self, text):
