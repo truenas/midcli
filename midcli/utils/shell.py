@@ -1,6 +1,7 @@
 # -*- coding=utf-8 -*-
 import logging
 import os
+import pwd
 import sys
 
 logger = logging.getLogger(__name__)
@@ -14,7 +15,11 @@ def is_main_cli():
 
 
 def spawn_shell():
-    os.system("/usr/bin/su -l root")
+    shell = pwd.getpwuid(os.getuid()).pw_shell
+    if shell not in ["/usr/bin/sh", "/usr/bin/bash", "/usr/bin/dash", "/usr/bin/zsh"]:
+        shell = "/usr/bin/zsh"
+
+    os.system(shell)
 
 
 def switch_to_shell():
