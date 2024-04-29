@@ -13,7 +13,7 @@ class ShellCommand(Command):
     builtin = True
     hidden = True
     name = "shell"
-    description = "Switch to root shell"
+    description = "Switch to shell"
 
     def process_input(self, text):
         spawn_shell()

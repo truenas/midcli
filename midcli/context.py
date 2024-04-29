@@ -187,8 +187,7 @@ class Namespaces(object):
             namespace.add_child(command)
 
 
-class Context(object):
-
+class Context:
     def __init__(self, cli, url, user, password, timeout, editor, menu, menu_item, mode, stacks):
         self.cli = cli
         self.url = url
@@ -283,7 +282,7 @@ class Context(object):
                     continue
 
                 if is_main_cli():
-                    print(f'{error}. Press Enter to open root shell.')
+                    print(f'{error}. Press Enter to open shell.')
                     input()
                     spawn_shell()
                 else:
