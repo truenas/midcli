@@ -44,13 +44,15 @@ class CallMixin:
                         schema, rest = self.context.url.split("://")
                         hostname_port = rest.split("/")[0]
                         http_url = f"http{schema.removeprefix('ws')}://{hostname_port}"
+                        verify = True
                     else:
                         http_url = f"http://127.0.0.1:{c.call('system.general.config')['ui_port']}"
+                        verify = False
 
                     with open(pipe_output, "wb") as f:
                         job_id, download_url = c.call("core.download", name, args, pipe_output)
                         download_thread = threading.Thread(
-                            daemon=True, target=self._download, args=(http_url + download_url, pipe_output, f),
+                            daemon=True, target=self._download, args=(http_url + download_url, verify, pipe_output, f),
                         )
                         download_thread.start()
                         rv = c.call("core.job_wait", job_id, job=True, callback=self._job_callback)
@@ -113,9 +115,9 @@ class CallMixin:
 
         self.job_last_printed_description = text
 
-    def _download(self, url, path, f):
+    def _download(self, url, verify, path, f):
         try:
-            with requests.get(url, stream=True) as r:
+            with requests.get(url, stream=True, verify=verify) as r:
                 r.raise_for_status()
                 shutil.copyfileobj(r.raw, f)
         except Exception as e:
