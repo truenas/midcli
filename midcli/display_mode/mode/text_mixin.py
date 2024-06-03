@@ -2,7 +2,7 @@
 from datetime import date, datetime, time
 import logging
 
-from middlewared.client import ejson
+from truenas_api_client import ejson
 
 from midcli.utils.lang import undefined
 

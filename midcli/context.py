@@ -6,7 +6,7 @@ import time
 from prompt_toolkit import print_formatted_text as print
 from prompt_toolkit.completion import Completion
 
-from middlewared.client import Client, ClientException
+from truenas_api_client import Client, ClientException
 
 from .command.generic_call import GenericCallCommand
 from .command.generic_call.update import UpdateCommand

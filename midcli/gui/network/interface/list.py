@@ -8,7 +8,7 @@ from prompt_toolkit.layout.containers import ConditionalContainer, to_container
 from prompt_toolkit.widgets import Label
 from prompt_toolkit.shortcuts import message_dialog
 
-from middlewared.client import ClientException
+from truenas_api_client import ClientException
 
 from midcli.gui.base.app import AppResult
 from midcli.gui.base.list.list import List

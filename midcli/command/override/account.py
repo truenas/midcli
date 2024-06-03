@@ -2,7 +2,7 @@
 import errno
 import logging
 
-from middlewared.client import ClientException, ValidationErrors
+from truenas_api_client import ClientException, ValidationErrors
 
 from midcli.command.common_syntax.argument import EnumArgument
 from midcli.command.generic_call import GenericCallCommand

@@ -1,7 +1,7 @@
 # -*- coding=utf-8 -*-
 import pytest
 
-from middlewared.client import Client
+from truenas_api_client import Client
 
 from midcli.utils.test import command_test
 
