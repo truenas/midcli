@@ -8,7 +8,7 @@ import traceback
 
 import requests
 
-from middlewared.client import ClientException, ValidationErrors
+from truenas_api_client import ClientException, ValidationErrors
 
 from midcli.command.interface import ProcessInputError
 from midcli.middleware import format_error, format_validation_errors

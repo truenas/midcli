@@ -17,7 +17,7 @@ from prompt_toolkit.shortcuts.dialogs import _create_app
 from prompt_toolkit.widgets import Label
 from prompt_toolkit.widgets.base import Box, Button, Frame, Shadow
 
-from middlewared.client import ClientException, ValidationErrors
+from truenas_api_client import ClientException, ValidationErrors
 
 from midcli.gui.base.app import AppResult
 from midcli.gui.base.common.menu_item import MenuItem

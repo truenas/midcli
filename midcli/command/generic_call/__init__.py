@@ -2,7 +2,7 @@
 import copy
 import logging
 
-from middlewared.client import ClientException, ValidationErrors
+from truenas_api_client import ClientException, ValidationErrors
 
 from midcli.command.call_mixin import CallMixin
 from midcli.command.common_syntax.argument import Argument, BooleanArgument, EnumArgument
