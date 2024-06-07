@@ -7,14 +7,13 @@ Build-Depends: debhelper-compat (= 12),
                middlewared,
                python3-all,
                python3-click,
-               python3-fastentrypoints,
                python3-prompt-toolkit,
+               python3-ptable,
                python3-pyparsing (>= 3.0.0b2),
                python3-setuptools,
-               python3-tableprint,
                python3-yaml
 Standards-Version: 4.4.0
-Homepage: https://github.com/freenas/midcli
+Homepage: https://github.com/truenas/midcli
 Vcs-Browser: https://salsa.debian.org/python-team/modules/midcli
 Vcs-Git: https://salsa.debian.org/python-team/modules/midcli.git
 Testsuite: autopkgtest-pkg-python
