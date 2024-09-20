@@ -1,4 +1,5 @@
 import getpass
+import json
 
 from midcli.gui.base.app import run_app
 from midcli.gui.network.configuration import NetworkConfiguration
@@ -99,13 +100,13 @@ def shell(context):
 
 
 def reboot(context):
-    if _yesno("Confirm reboot"):
-        context.process_input("system reboot")
+    if reason := input("Please enter the reason for the system reboot: ").strip():
+        context.process_input(f"system reboot {json.dumps(reason)}")
 
 
 def shutdown(context):
-    if _yesno("Confirm shutdown"):
-        context.process_input("system shutdown")
+    if reason := input("Please enter the reason for the system shutdown: ").strip():
+        context.process_input(f"system shutdown {json.dumps(reason)}")
 
 
 def get_menu_items(context):
