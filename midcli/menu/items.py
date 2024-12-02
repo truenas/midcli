@@ -101,12 +101,14 @@ def shell(context):
 
 def reboot(context):
     if reason := input("Please enter the reason for the system reboot: ").strip():
-        context.process_input(f"system reboot {json.dumps(reason)}")
+        with context.get_client() as c:
+            c.call('system.reboot', json.dumps(reason))
 
 
 def shutdown(context):
     if reason := input("Please enter the reason for the system shutdown: ").strip():
-        context.process_input(f"system shutdown {json.dumps(reason)}")
+        with context.get_client() as c:
+            c.call('system.shutdown', json.dumps(reason))
 
 
 def get_menu_items(context):
