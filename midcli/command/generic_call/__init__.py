@@ -39,6 +39,10 @@ class GenericCallCommand(CallMixin, CommonSyntaxCommand):
     def _create_arguments(self):
         for i, item in enumerate(self.method["accepts"] or []):
             if i == self.splice_kwargs:
+                if "anyOf" in item and all(option.get("type") == "object" for option in item["anyOf"]):
+                    # FIXME: Remove this when we use proper field discriminators in API
+                    item = {"type": "object", "_attrs_order_": []}
+
                 if item["type"] != "object":
                     raise ValueError(f"For {self.method['name']!r} specified splice_kwargs={self.splice_kwargs} "
                                      f"for an item of type={item['type']!r}")
