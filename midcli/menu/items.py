@@ -125,11 +125,8 @@ def get_menu_items(context):
     with context.get_client() as c:
         if c.call("user.has_local_administrator_set_up"):
             menu_items.append(("Change local administrator password", manage_local_administrator_password))
-            try:
-               this_username = c.call("auth.me")["pw_name"]
-               menu_items.append((f'Create one-time password for "{this_username}"', generate_onetime_password))
-            except Exception as exc:
-               pass
+            this_username = c.call("auth.me")["pw_name"]
+            menu_items.append((f'Create one-time password for "{this_username}"', generate_onetime_password))
         else:
             menu_items.append(("Set up local administrator", manage_local_administrator_password))
     menu_items += [
