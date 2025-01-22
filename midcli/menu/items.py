@@ -99,6 +99,13 @@ def shell(context):
     spawn_shell()
 
 
+def generate_onetime_password(context):
+    with context.get_client() as c:
+        username = c.call("auth.me")["pw_name"]
+        otp = c.call("auth.generate_onetime_password", {"username": username})
+        print(f'Onetime password for "{username}" is: {otp}')
+
+
 def reboot(context):
     if reason := input("Please enter the reason for the system reboot: ").strip():
         context.process_input(f"system reboot {json.dumps(reason)}")
@@ -118,6 +125,8 @@ def get_menu_items(context):
     with context.get_client() as c:
         if c.call("user.has_local_administrator_set_up"):
             menu_items.append(("Change local administrator password", manage_local_administrator_password))
+            this_username = c.call("auth.me")["pw_name"]
+            menu_items.append((f'Create one-time password for "{this_username}"', generate_onetime_password))
         else:
             menu_items.append(("Set up local administrator", manage_local_administrator_password))
     menu_items += [
