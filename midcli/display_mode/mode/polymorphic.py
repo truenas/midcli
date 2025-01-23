@@ -26,4 +26,3 @@ class PolymorphicDisplayMode(DisplayMode):
 
     def display_scalar(self, scalar):
         raise NotImplementedError
-

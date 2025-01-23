@@ -1,7 +1,7 @@
 from setuptools import find_packages, setup
 
 try:
-    import fastentrypoints
+    import fastentrypoints  # noqa
 except ImportError:
     import sys
     print("fastentrypoints module not found. entry points will be slower.", file=sys.stderr)

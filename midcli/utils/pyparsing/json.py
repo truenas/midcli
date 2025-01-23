@@ -12,6 +12,9 @@
 #
 import json
 
+import pyparsing as pp
+from pyparsing import pyparsing_common as ppc
+
 json_bnf = """
 object
     { members }
@@ -35,9 +38,6 @@ value
     null
 """
 
-import pyparsing as pp
-from pyparsing import pyparsing_common as ppc
-
 
 def make_keyword(kwd_str, kwd_value):
     return pp.Keyword(kwd_str).setParseAction(pp.replaceWith(kwd_value))
@@ -49,7 +49,7 @@ NULL = make_keyword("null", None)
 
 LBRACK, RBRACK, LBRACE, RBRACE, COLON = map(pp.Suppress, "[]{}:")
 
-jsonString = pp.dblQuotedString().setParseAction(lambda s, l, t: json.loads(t[0]))
+jsonString = pp.dblQuotedString().setParseAction(lambda _, __, t: json.loads(t[0]))
 jsonNumber = ppc.number()
 
 jsonObject = pp.Forward().setName("jsonObject")

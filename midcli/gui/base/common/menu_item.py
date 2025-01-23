@@ -54,8 +54,8 @@ class MenuItem:
 
         def handler(mouse_event: MouseEvent) -> None:
             if (
-                self.handler is not None
-                and mouse_event.event_type == MouseEventType.MOUSE_UP
+                self.handler is not None and
+                mouse_event.event_type == MouseEventType.MOUSE_UP
             ):
                 self.handler()
 

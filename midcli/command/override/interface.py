@@ -4,7 +4,7 @@ import logging
 
 from .utils import remove_fields, rows_processor
 
-from truenas_api_client import ClientException, ValidationErrors
+from truenas_api_client import ValidationErrors
 
 from midcli.command.generic_call import GenericCallCommand
 from midcli.command.query.command import QueryCommand

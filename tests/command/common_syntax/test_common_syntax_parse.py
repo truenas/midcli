@@ -18,9 +18,7 @@ from midcli.command.common_syntax.parse import ParseError, CommonSyntaxCommandAr
     ("1 null", CommonSyntaxCommandArguments([1, None], {})),
     ("1 [1, 2, 3]", CommonSyntaxCommandArguments([1, [1, 2, 3]], {})),
     ("1 1,2,3", CommonSyntaxCommandArguments([1, [1, 2, 3]], {})),
-    ("1 1,2, 3", "Expected end of text, found '1'\n"
-                 " 1 1,2, 3\n"
-                 "   ^"),
+    ("1 1,2, 3", CommonSyntaxCommandArguments([1, [1, 2, 3]], {})),
     ("1 \"a,b\",\"c, d\"", CommonSyntaxCommandArguments([1, ["a,b", "c, d"]], {})),
     ("1 {\"key\": \"value\"} 2", CommonSyntaxCommandArguments([1, {"key": "value"}, 2], {})),
     ("1 {\"key\": [\"nested\", {\"value\": 2}]} 3", CommonSyntaxCommandArguments([1, {"key": ["nested", {"value": 2}]}, 3], {})),

@@ -53,7 +53,7 @@ class NetworkInterfaceList(List):
 
         self.kb.add("a")(lambda event: event.app.exit(AppResult(app_factory=apply_app_factory)))
         self.kb.add("p")(lambda event: event.app.exit(AppResult(app_factory=persist_app_factory)))
-        
+
         def apply_app_factory():
             print("Applying network interface changes...")
             with self.context.get_client() as c:
