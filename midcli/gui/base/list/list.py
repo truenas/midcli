@@ -62,9 +62,9 @@ class List:
                     )
                 )
             )
-        actions.append(f"<r> to refresh")
+        actions.append("<r> to refresh")
         self.kb.add("r")(lambda event: event.app.exit(AppResult(app_factory=lambda: self.__class__(self.context))))
-        actions.append(f"<q> to quit")
+        actions.append("<q> to quit")
         self.kb.add("q")(lambda event: event.app.exit(None))
 
         help_label = Label("\n" + "\n".join(textwrap.wrap(f"Press {', '.join(actions)}.", width=60)))

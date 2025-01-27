@@ -3,7 +3,7 @@ import enum
 import itertools
 import logging
 
-from prompt_toolkit.filters import has_completions, has_focus
+from prompt_toolkit.filters import has_focus
 from prompt_toolkit.formatted_text import FormattedText
 from prompt_toolkit.key_binding.bindings.focus import focus_next, focus_previous
 from prompt_toolkit.key_binding.key_bindings import KeyBindings

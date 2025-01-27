@@ -1,6 +1,5 @@
 # -*- coding=utf-8 -*-
 import logging
-import sys
 
 from prompt_toolkit.application import get_app
 import yaml

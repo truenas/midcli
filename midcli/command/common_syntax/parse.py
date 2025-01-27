@@ -34,7 +34,11 @@ RE_SIMPLE_STRING = re.compile(r"[a-z\\./_@][a-z0-9\\./_@]*$", flags=re.IGNORECAS
 json = jsonValue.setName("json")
 
 baseValue = (oct | hex | json | string).setName("baseValue")
-baseValueList = (baseValue + pp.OneOrMore((pp.Suppress(",") + baseValue).leaveWhitespace())).leaveWhitespace().setName("baseValueList")
+baseValueList = (
+    (baseValue + pp.OneOrMore((pp.Suppress(",") + baseValue).leaveWhitespace())).
+    leaveWhitespace().
+    setName("baseValueList")
+)
 
 value = (baseValueList | baseValue).setName("value")
 

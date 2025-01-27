@@ -51,7 +51,7 @@ def manage_local_administrator_password(context):
         print("1) Administrative user (admin)")
         print("2) Root user (not recommended)")
         print()
-        number = input(f"Enter an option from 1-2: ")
+        number = input("Enter an option from 1-2: ")
         try:
             username = {"1": "admin", "2": "root"}[number]
         except KeyError:
