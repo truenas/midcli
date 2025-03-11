@@ -1,18 +1,16 @@
 # -*- coding=utf-8 -*-
 import asyncio
 import logging
-import textwrap
 
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.layout.containers import ConditionalContainer, to_container
 from prompt_toolkit.widgets import Label
-from prompt_toolkit.shortcuts import message_dialog
 
 from truenas_api_client import ClientException
 
 from midcli.gui.base.app import AppResult
+from midcli.gui.base.common.error import gui_handle_error
 from midcli.gui.base.list.list import List
-from midcli.middleware import format_error
 from midcli.utils.truenas.interface import alias_to_str
 
 from .create_update import NetworkInterfaceCreate, NetworkInterfaceUpdate
@@ -60,10 +58,7 @@ class NetworkInterfaceList(List):
                 try:
                     c.call("interface.commit")
                 except ClientException as e:
-                    return AppResult(
-                        app=message_dialog("Error", "\n".join(textwrap.wrap(format_error(self.context, e), 74))),
-                        app_result_handler=lambda _: NetworkInterfaceList(self.context),
-                    )
+                    return gui_handle_error(self.context, e, lambda _: NetworkInterfaceList(self.context))
 
             return NetworkInterfaceList(self.context)
 
