@@ -16,8 +16,11 @@ from prompt_toolkit.shortcuts.dialogs import _create_app
 from prompt_toolkit.widgets import Label
 from prompt_toolkit.widgets.base import Box, Frame, Shadow
 
+from truenas_api_client import ClientException
+
 from midcli.display_mode.mode.text_mixin import TextMixin
 from midcli.gui.base.app import AppResult
+from midcli.gui.base.common.error import gui_handle_error
 from midcli.gui.base.common.menu_item import MenuItem
 
 logger = logging.getLogger(__name__)
@@ -193,7 +196,10 @@ class List:
             def handler(sure):
                 if sure:
                     with self.context.get_client() as c:
-                        c.call(f"{self.service}.delete", row[self.primary_key])
+                        try:
+                            c.call(f"{self.service}.delete", row[self.primary_key])
+                        except ClientException as e:
+                            return gui_handle_error(self.context, e, lambda _: self.__class__(self.context))
 
                 return self.__class__(self.context)
 
