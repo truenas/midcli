@@ -1,6 +1,7 @@
 # -*- coding=utf-8 -*-
 import logging
 
+from prompt_toolkit.shortcuts import message_dialog
 from prompt_toolkit.styles import Style
 from prompt_toolkit.validation import Validator, ValidationError
 
@@ -22,8 +23,11 @@ def create_input_delegate(input, schema):
         nullable = True
         type = [x for x in type if x != "null"][0]
 
-    enum = input.enum or schema.get("enum")
-    if enum:
+    if input.enum is not undefined:
+        enum = input.enum
+    else:
+        enum = schema.get("enum")
+    if enum is not None:
         return EnumInputDelegate(enum, type == "array")
 
     if type == "boolean":
@@ -69,6 +73,9 @@ class EnumInputDelegate(InputDelegate):
         self.multiple = multiple
 
     def create_input_app(self, title, text, value):
+        if not self.enum:
+            return message_dialog(title, "No items available for selection.")
+
         kwargs = {}
         if self.multiple:
             factory = checkboxlist_dialog
