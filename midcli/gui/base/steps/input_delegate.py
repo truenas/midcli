@@ -16,7 +16,22 @@ def create_input_delegate(input, schema):
     if input.delegate:
         return input.delegate()
 
-    type = schema["type"]
+    if "type" in schema:
+        type = schema["type"]
+    else:
+        if "enum" in schema:
+            type = set()
+            for v in schema["enum"]:
+                if v is None:
+                    type.add("null")
+                elif isinstance(v, str):
+                    type.add("string")
+            type = list(type)
+        elif "anyOf" in schema and (type := [s["type"] for s in schema["anyOf"]]):
+            pass
+        else:
+            raise ValueError(f"Unable to create input delegate for schema {schema!r}")
+
     nullable = False
     if isinstance(type, list) and len(type) == 2 and "null" in type:
         nullable = True
