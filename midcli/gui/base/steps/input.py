@@ -1,5 +1,5 @@
 # -*- coding=utf-8 -*-
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import logging
 
 from midcli.utils.lang import undefined
@@ -14,6 +14,6 @@ class Input:
     name: str
     default: str = undefined
     empty: bool = undefined
-    enum: list = field(default_factory=list)
+    enum: list = undefined
     required: bool = undefined
     delegate: object = None
