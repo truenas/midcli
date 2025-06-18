@@ -1,8 +1,11 @@
 # -*- coding=utf-8 -*-
 from dataclasses import dataclass
 import logging
+from typing import TYPE_CHECKING, Callable
 
 from midcli.utils.lang import undefined
+if TYPE_CHECKING:
+    from midcli.gui.base.steps.input_delegate import InputDelegate
 
 logger = logging.getLogger(__name__)
 
@@ -16,4 +19,4 @@ class Input:
     empty: bool = undefined
     enum: list = undefined
     required: bool = undefined
-    delegate: object = None
+    delegate: Callable[[], "InputDelegate"] | None = None

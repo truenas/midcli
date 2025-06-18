@@ -1,5 +1,6 @@
 # -*- coding=utf-8 -*-
 import logging
+import typing
 
 from prompt_toolkit.shortcuts import message_dialog
 from prompt_toolkit.styles import Style
@@ -7,41 +8,45 @@ from prompt_toolkit.validation import Validator, ValidationError
 
 from midcli.utils.lang import undefined
 from midcli.utils.prompt_toolkit.widgets.shortcuts import checkboxlist_dialog, input_dialog, radiolist_dialog
+if typing.TYPE_CHECKING:
+    from midcli.gui.base.steps.input import Input
 
 logger = logging.getLogger(__name__)
 
 __all__ = ["create_input_delegate"]
 
 
-def create_input_delegate(input, schema):
+def create_input_delegate(input: "Input", schema: dict) -> "InputDelegate":
     if input.delegate:
         return input.delegate()
 
     if "type" in schema:
         type = schema["type"]
+    elif "enum" in schema:
+        type = set()
+        for v in schema["enum"]:
+            if v is None:
+                type.add("null")
+            elif isinstance(v, str):
+                type.add("string")
+    elif "anyOf" in schema and (type := {s["type"] for s in schema["anyOf"]}):
+        pass
     else:
-        if "enum" in schema:
-            type = set()
-            for v in schema["enum"]:
-                if v is None:
-                    type.add("null")
-                elif isinstance(v, str):
-                    type.add("string")
-            type = list(type)
-        elif "anyOf" in schema and (type := [s["type"] for s in schema["anyOf"]]):
-            pass
-        else:
-            raise ValueError(f"Unable to create input delegate for schema {schema!r}")
+        raise ValueError(f"Unable to create input delegate for schema {schema!r}")
 
     nullable = False
-    if isinstance(type, list) and len(type) == 2 and "null" in type:
-        nullable = True
-        type = [x for x in type if x != "null"][0]
+    if isinstance(type, set):
+        if len(type) == 1:
+            type = type.pop()
+        elif len(type) == 2 and "null" in type:
+            nullable = True
+            type = next(filter(lambda x: x != "null", type))
 
-    if input.enum is not undefined:
-        enum = input.enum
-    else:
+    if input.enum is undefined:
         enum = schema.get("enum")
+    else:
+        enum = input.enum
+
     if enum is not None:
         return EnumInputDelegate(enum, type == "array")
 
@@ -53,6 +58,8 @@ def create_input_delegate(input, schema):
 
     if type == "string":
         return StringInputDelegate()
+
+    raise ValueError(f"Unable to create input delegate for schema {schema!r}")
 
 
 class InputDelegate:
