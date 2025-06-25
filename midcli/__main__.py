@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import errno
 import os
 import signal
 import sys
@@ -196,7 +197,8 @@ class CLI:
 
             history = FileHistory(history_file)
         except Exception as e:
-            print(f'WARNING: Unable to open history file: {e}')
+            if e.errno != errno.EPERM:
+                print(f'INFO: Unable to open history file: {e} (Using in memory history).')
             history = InMemoryHistory()
 
         self.loop = asyncio.get_event_loop()
