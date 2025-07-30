@@ -1,4 +1,3 @@
-import errno
 import re
 import socket
 import time
@@ -25,8 +24,7 @@ from .display_mode.mode.table import TableDisplayMode
 from .utils.shell import is_main_cli, spawn_shell
 
 
-class Namespace(object):
-
+class Namespace:
     parent = None
 
     def __init__(self, context, name, description=""):
@@ -112,8 +110,7 @@ class Namespace(object):
         return name, rest
 
 
-class Namespaces(object):
-
+class Namespaces:
     METHOD_OVERRIDE = {
         'account.user.query': AccountQueryCommand,
         'account.user.create': AccountCreateCommand,
@@ -287,31 +284,6 @@ class Context:
                     spawn_shell()
                 else:
                     exit(f'{error}.')
-
-    def get_before_prompt(self):
-        items = []
-
-        with self.get_client() as c:
-            try:
-                if checkin_waiting := c.call('interface.checkin_waiting'):
-                    n = int(checkin_waiting)
-                    items.append(
-                        'Network interface changes have been applied. Please run `network interface checkin`\n'
-                        f'if the network is still operational or they will be rolled back in {n} seconds.'
-                    )
-                elif c.call('interface.has_pending_changes'):
-                    items.append(
-                        'You have pending network interface changes. Please run `network interface commit`\n'
-                        'to apply them.'
-                    )
-            except ClientException as e:
-                if e.errno != errno.EACCES:
-                    raise
-
-        if items:
-            return '\n'.join(items) + '\n'
-
-        return ''
 
     def get_prompt(self, prompt):
         current = self.current_namespace
