@@ -19,6 +19,7 @@ from prompt_toolkit.layout.processors import (
 from prompt_toolkit.shortcuts import PromptSession, CompleteStyle
 from prompt_toolkit.styles import Style
 
+from .before_prompt import BeforePrompt
 from .completer import MidCompleter
 from .command.interface import ProcessInputError
 from .context import Context
@@ -76,10 +77,13 @@ class CLI:
         return prompt_app
 
     def _build_cli(self, history):
+        before_prompt = BeforePrompt(self.context.get_client)
+        before_prompt.start()
+
         def get_message():
             prompt = self.context.get_prompt(self.default_prompt)
             return [
-                ('class:before_prompt', self.context.get_before_prompt()),
+                ('class:before_prompt', before_prompt.get_before_prompt()),
                 ('class:prompt', prompt),
             ]
 
