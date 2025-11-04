@@ -39,7 +39,10 @@ class GenericCallCommand(CallMixin, CommonSyntaxCommand):
     def _create_arguments(self):
         for i, item in enumerate(self.method["accepts"] or []):
             if i == self.splice_kwargs:
-                if "anyOf" in item and all(option.get("type") == "object" for option in item["anyOf"]):
+                # Handle discriminated unions (oneOf with discriminator) and anyOf unions
+                if ("anyOf" in item or "oneOf" in item) and all(
+                    option.get("type") == "object" for option in item.get("anyOf") or item.get("oneOf")
+                ):
                     # FIXME: Remove this when we use proper field discriminators in API
                     item = {"type": "object", "_attrs_order_": []}
 
