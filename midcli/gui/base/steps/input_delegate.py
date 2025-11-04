@@ -29,7 +29,9 @@ def create_input_delegate(input: "Input", schema: dict) -> "InputDelegate":
                 type.add("null")
             elif isinstance(v, str):
                 type.add("string")
-    elif "anyOf" in schema and (type := {s["type"] for s in schema["anyOf"]}):
+    elif ("anyOf" in schema or "oneOf" in schema) and (
+        type := {s["type"] for s in schema.get("anyOf", []) or schema.get("oneOf", [])}
+    ):
         pass
     else:
         raise ValueError(f"Unable to create input delegate for schema {schema!r}")
