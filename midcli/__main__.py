@@ -6,6 +6,7 @@ import signal
 import sys
 import threading
 import time
+import json
 
 from prompt_toolkit import print_formatted_text as print
 from prompt_toolkit.application import run_in_terminal
@@ -36,7 +37,7 @@ class CLI:
     default_prompt = '[%h]%_n> '
 
     def __init__(self, url=None, user=None, password=None, timeout=None, command=None, interactive=None, menu=False,
-                 menu_item=None, mode=None, pager=False, print_template=False, stacks=False):
+                 menu_item=None, mode=None, pager=False, print_template=False, stacks=False, vendor="TrueNAS"):
         if command is None or interactive:
             editor = InteractiveEditor()
         elif print_template:
@@ -48,7 +49,7 @@ class CLI:
             enable_pager()
 
         self.context = Context(self, url=url, user=user, password=password, timeout=timeout,
-                               editor=editor, menu=menu, menu_item=menu_item, mode=mode, stacks=stacks)
+                               editor=editor, menu=menu, menu_item=menu_item, mode=mode, stacks=stacks, vendor=vendor)
 
         self.command = command
         self.completer = MidCompleter(self.context)
@@ -294,7 +295,14 @@ def main():
                         help='Display errors stack trace')
     args = parser.parse_args()
 
-    cli = CLI(**args.__dict__)
+    vendor = "TrueNAS"
+    try:
+        with open("/data/.vendor") as f:
+            vendor = json.loads(f.read()).get("name", "TrueNAS")
+    except Exception:
+        pass
+
+    cli = CLI(vendor=vendor, **args.__dict__)
     cli.run()
 
 
