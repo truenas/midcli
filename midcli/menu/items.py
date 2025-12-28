@@ -1,4 +1,5 @@
 import getpass
+import time
 import json
 
 from midcli.gui.base.app import run_app
@@ -102,8 +103,21 @@ def shell(context):
 def generate_onetime_password(context):
     with context.get_client() as c:
         username = c.call("auth.me")["pw_name"]
-        otp = c.call("auth.generate_onetime_password", {"username": username})
-        print(f'Onetime password for "{username}" is: {otp}')
+
+        # Important!
+        # You cannot change password right after installation
+        # because of this exception. You also cannot detect it.
+        try:
+            otp = c.call("auth.generate_onetime_password", {"username": username})
+            print(f'Onetime password for "{username}" is: {otp}')
+        except ValidationErrors as ex:
+            print(
+                f"Cannot set onetime password for {username} - ",
+                "password authentication is disabled.",
+            )
+
+            # to be sure that user will see this label
+            time.sleep(2)
 
 
 def reboot(context):
@@ -124,11 +138,23 @@ def get_menu_items(context):
     ]
     with context.get_client() as c:
         if c.call("user.has_local_administrator_set_up"):
-            menu_items.append(("Change local administrator password", manage_local_administrator_password))
+            menu_items.append(
+                (
+                    "Change local administrator password",
+                    manage_local_administrator_password,
+                )
+            )
             this_username = c.call("auth.me")["pw_name"]
-            menu_items.append((f'Create one-time password for "{this_username}"', generate_onetime_password))
+            menu_items.append(
+                (
+                    f'Create one-time password for "{this_username}"',
+                    generate_onetime_password,
+                )
+            )
         else:
-            menu_items.append(("Set up local administrator", manage_local_administrator_password))
+            menu_items.append(
+                ("Set up local administrator", manage_local_administrator_password)
+            )
     menu_items += [
         ("Reset configuration to defaults", reset_configuration),
         ("Open TrueNAS CLI Shell", cli),
