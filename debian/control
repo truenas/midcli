@@ -4,13 +4,13 @@ Priority: optional
 Maintainer: William Grzybowski <william@grzy.org>
 Build-Depends: debhelper-compat (= 12),
                dh-python,
-               middlewared,
                python3-all,
                python3-click,
                python3-prompt-toolkit,
                python3-ptable,
                python3-pyparsing (>= 3.0.0b2),
                python3-setuptools,
+               python3-truenas-api-client,
                python3-yaml
 Standards-Version: 4.4.0
 Homepage: https://github.com/truenas/midcli
@@ -22,13 +22,13 @@ Package: python3-midcli
 Architecture: all
 Depends: ${misc:Depends},
          ${python3:Depends},
-         middlewared,
          python3-all,
          python3-click,
          python3-prompt-toolkit,
          python3-ptable,
          python3-pyparsing (>= 3.0.0b2),
          python3-setuptools,
+         python3-truenas-api-client,
          python3-yaml
 Description: TrueNAS Command Line Interface
  TrueNAS Command Line Interface
