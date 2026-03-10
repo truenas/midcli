@@ -27,10 +27,6 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
-      - name: Deploy
-        run: |
-          FAKE_ENV=1 /usr/bin/install-dev-tools
-
       - name: Test
         run:
           FAKE_ENV=1 pytest-3 -v --disable-pytest-warnings tests/
