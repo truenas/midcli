@@ -131,7 +131,7 @@ def get_menu_items(context):
             menu_items.append(("Set up local administrator", manage_local_administrator_password))
     menu_items += [
         ("Reset configuration to defaults", reset_configuration),
-        ("Open TrueNAS CLI Shell", cli),
+        (f"Open {context.vendor} CLI Shell", cli),
         ("Open Linux Shell", shell),
         ("Reboot", reboot),
         ("Shutdown", shutdown),
