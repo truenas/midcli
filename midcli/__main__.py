@@ -233,7 +233,7 @@ class CLI:
         try:
             menu_items = get_menu_items(self.context)
             menu_app = self._build_menu(menu_items)
-            prompt_app = self._build_cli(history)
+            prompt_app = None
 
             while True:
                 if self.context.menu_item:
@@ -247,6 +247,9 @@ class CLI:
 
                     process_menu_item(self.context, menu_items, text)
                 else:
+                    if prompt_app is None:
+                        prompt_app = self._build_cli(history)
+
                     try:
                         text = prompt_app.prompt()
                     except KeyboardInterrupt:
