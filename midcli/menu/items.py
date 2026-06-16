@@ -107,13 +107,25 @@ def generate_onetime_password(context):
 
 
 def reboot(context):
-    if reason := input("Please enter the reason for the system reboot: ").strip():
-        context.process_input(f"system reboot {json.dumps(reason)}")
+    reason = "Unknown Reason"
+    with context.get_client() as c:
+        if c.call("system.product_type") == "ENTERPRISE":
+            reason = input("Please enter the reason for the system reboot: ").strip()
+            if not reason:
+                return
+
+    context.process_input(f"system reboot {json.dumps(reason)}")
 
 
 def shutdown(context):
-    if reason := input("Please enter the reason for the system shutdown: ").strip():
-        context.process_input(f"system shutdown {json.dumps(reason)}")
+    reason = "Unknown Reason"
+    with context.get_client() as c:
+        if c.call("system.product_type") == "ENTERPRISE":
+            reason = input("Please enter the reason for the system shutdown: ").strip()
+            if not reason:
+                return
+
+    context.process_input(f"system shutdown {json.dumps(reason)}")
 
 
 def get_menu_items(context):
