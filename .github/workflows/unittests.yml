@@ -29,4 +29,4 @@ jobs:
 
       - name: Test
         run:
-          FAKE_ENV=1 pytest-3 -v --disable-pytest-warnings tests/
+          PYTHONPATH=. FAKE_ENV=1 pytest-3 -v --disable-pytest-warnings tests/
