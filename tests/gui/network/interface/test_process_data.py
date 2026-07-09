@@ -8,9 +8,7 @@ from midcli.gui.network.interface.create_update import NetworkInterfaceCreate
 
 def steps(failover_licensed=True):
     steps = MagicMock()
-    client = MagicMock()
-    client.call.return_value = failover_licensed
-    steps.context.get_client.return_value.__enter__.return_value = client
+    steps.failover_licensed = failover_licensed
     return steps
 
 
