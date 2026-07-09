@@ -91,6 +91,17 @@ class NetworkInterfaceCreate(Steps):
                 data["ipv4_dhcp"] = False
                 data["ipv6_auto"] = False
 
+                # `interface.query` reports failover aliases with a `netmask`, but
+                # `interface.create`/`interface.update` reject it. Values the user did not
+                # retype reach us verbatim from the query, so strip it before submitting.
+                # Rebuild rather than mutate: these dicts are shared with `self.data`.
+                for key in ("failover_aliases", "failover_virtual_aliases"):
+                    if aliases := data.get(key):
+                        data[key] = [
+                            {k: v for k, v in alias.items() if k != "netmask"}
+                            for alias in aliases
+                        ]
+
 
 class NetworkInterfaceUpdate(NetworkInterfaceCreate):
     title = "Update Network Interface"
