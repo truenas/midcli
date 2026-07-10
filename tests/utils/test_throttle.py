@@ -16,7 +16,7 @@ def make_throttler(**kwargs):
     def sleep(seconds):
         sleeps.append(seconds)
 
-    kwargs.setdefault("flush", lambda: flushes.append(clock["now"]))
+    kwargs.setdefault("discard_callback", lambda: flushes.append(clock["now"]))
     throttler = Throttler(monotonic=monotonic, sleep=sleep, **kwargs)
     throttler._test_flushes = flushes
     return throttler, clock, sleeps
@@ -77,27 +77,42 @@ def test_gap_within_reset_does_not_reset_throttle():
     assert sleeps == [0.01]
 
 
-def test_flush_runs_after_each_sleep_only():
-    flushes = []
+def test_discard_callback_runs_after_each_sleep_only():
+    discards = []
     throttler, clock, sleeps = make_throttler(
-        burst=2, delay=0.01, flush=lambda: flushes.append(True),
+        burst=2, delay=0.01, discard_callback=lambda: discards.append(True),
     )
 
-    # First 2 calls: no sleep, no flush.
+    # First 2 calls: no sleep, no discard.
     throttler.throttle()
     throttler.throttle()
-    assert flushes == []
+    assert discards == []
 
-    # 3rd call sleeps and then flushes.
+    # 3rd call sleeps and then discards.
     throttler.throttle()
-    assert flushes == [True]
+    assert discards == [True]
 
 
-def test_no_flush_callback_is_fine():
+def test_discard_false_sleeps_without_discarding():
+    discards = []
+    throttler, clock, sleeps = make_throttler(
+        burst=2, delay=0.01, discard_callback=lambda: discards.append(True),
+    )
+
+    throttler.throttle()
+    throttler.throttle()
+
+    # 3rd call still sleeps but must not discard the accumulated input.
+    throttler.throttle(discard=False)
+    assert sleeps == [0.01]
+    assert discards == []
+
+
+def test_no_discard_callback_is_fine():
     throttler = Throttler(burst=1, monotonic=lambda: 0.0, sleep=lambda s: None)
 
     throttler.throttle()
-    throttler.throttle()  # would sleep+flush; flush is None, must not raise
+    throttler.throttle()  # would sleep+discard; callback is None, must not raise
 
 
 def test_uses_real_sleep_and_monotonic_by_default():

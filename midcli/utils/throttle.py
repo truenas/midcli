@@ -14,24 +14,25 @@ class Throttler:
     between two consecutive calls, the throttle is reset and the next `burst`
     calls are instantaneous again.
 
-    `flush` is called once after every sleep. It is meant to discard whatever
-    input piled up while we were sleeping (e.g. prompt_toolkit's typeahead
-    buffer when a key is held down), so the caller doesn't replay a backlog the
-    moment the key is released.
+    `discard_callback` is called once after every sleep, unless the caller
+    passes `discard=False`. It is meant to discard whatever input piled up while
+    we were sleeping (e.g. prompt_toolkit's typeahead buffer when a key is held
+    down), so the caller doesn't replay a backlog the moment the key is
+    released.
     """
 
-    def __init__(self, *, burst=10, delay=0.1, reset_after=1.0, flush=None,
+    def __init__(self, *, burst=10, delay=0.1, reset_after=1.0, discard_callback=None,
                  monotonic=time.monotonic, sleep=time.sleep):
         self.burst = burst
         self.delay = delay
         self.reset_after = reset_after
-        self._flush = flush
+        self._discard_callback = discard_callback
         self._monotonic = monotonic
         self._sleep = sleep
         self._count = 0
         self._last = None
 
-    def throttle(self):
+    def throttle(self, discard=True):
         now = self._monotonic()
         if self._last is not None and now - self._last > self.reset_after:
             self._count = 0
@@ -39,7 +40,7 @@ class Throttler:
 
         if self._count >= self.burst:
             self._sleep(self.delay)
-            if self._flush is not None:
-                self._flush()
+            if discard and self._discard_callback is not None:
+                self._discard_callback()
         else:
             self._count += 1
