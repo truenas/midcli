@@ -16,6 +16,7 @@ from prompt_toolkit.history import FileHistory, InMemoryHistory
 from prompt_toolkit.layout.processors import (
     ConditionalProcessor, HighlightMatchingBracketProcessor, TabsProcessor,
 )
+from prompt_toolkit.input.typeahead import clear_typeahead
 from prompt_toolkit.shortcuts import PromptSession, CompleteStyle
 from prompt_toolkit.styles import Style
 
@@ -30,6 +31,7 @@ from .key_bindings import get_key_bindings
 from .menu.items import get_menu_items, process_menu_item
 from .pager import enable_pager
 from .utils.shell import is_main_cli, switch_to_shell
+from .utils.throttle import Throttler
 
 
 class CLI:
@@ -235,11 +237,19 @@ class CLI:
             menu_app = self._build_menu(menu_items)
             prompt_app = None
 
+            # Drop input that piled up in prompt_toolkit's typeahead buffer
+            # while we were sleeping (e.g. a key held down), so we don't replay
+            # the backlog the moment it's released. Both sessions share stdin,
+            # so clearing via either input clears the buffer for both.
+            throttler = Throttler(discard_callback=lambda: clear_typeahead(menu_app.input))
+
             while True:
                 if self.context.menu_item:
                     process_menu_item(self.context, menu_items, self.context.menu_item)
                     break
                 elif self.context.menu:
+                    throttler.throttle()
+
                     try:
                         text = menu_app.prompt()
                     except KeyboardInterrupt:
@@ -247,6 +257,9 @@ class CLI:
 
                     process_menu_item(self.context, menu_items, text)
                 else:
+                    # Don't lose user's input (i.e. a pasted large multiline chunk)
+                    throttler.throttle(discard=False)
+
                     if prompt_app is None:
                         prompt_app = self._build_cli(history)
 
