@@ -1,4 +1,5 @@
 # -*- coding=utf-8 -*-
+import functools
 import logging
 
 from midcli.gui.base.steps.header import Header
@@ -19,10 +20,14 @@ class NetworkInterfaceCreate(Steps):
 
     method = StepsMethod.CREATE
 
-    def step1(self, data):
+    @functools.cached_property
+    def failover_licensed(self):
+        # A new `Steps` is built for every redraw, so this is re-fetched whenever the form
+        # is redrawn, and at most once per instance.
         with self.context.get_client() as c:
-            failover_licensed = c.call("failover.licensed")
+            return c.call("failover.licensed")
 
+    def step1(self, data):
         result = [Header("Interface Settings")]
 
         if self.method == StepsMethod.CREATE:
@@ -32,7 +37,7 @@ class NetworkInterfaceCreate(Steps):
             Input("name"),
             Input("description"),
         ])
-        if not failover_licensed:
+        if not self.failover_licensed:
             result.extend([
                 Input("ipv4_dhcp"),
                 Input("ipv6_auto"),
@@ -40,7 +45,7 @@ class NetworkInterfaceCreate(Steps):
         result.extend([
             Input("aliases", delegate=AliasesInputDelegate),
         ])
-        if failover_licensed:
+        if self.failover_licensed:
             result.extend([
                 Header("Failover Settings"),
                 Input("failover_critical"),
@@ -84,12 +89,20 @@ class NetworkInterfaceCreate(Steps):
             return result
 
     def process_data(self, data):
-        with self.context.get_client() as c:
-            failover_licensed = c.call("failover.licensed")
+        if self.failover_licensed:
+            data["ipv4_dhcp"] = False
+            data["ipv6_auto"] = False
 
-            if failover_licensed:
-                data["ipv4_dhcp"] = False
-                data["ipv6_auto"] = False
+            # `interface.query` reports failover aliases with a `netmask`, but
+            # `interface.create`/`interface.update` reject it. Values the user did not
+            # retype reach us verbatim from the query, so strip it before submitting.
+            # Rebuild rather than mutate: these dicts are shared with `self.data`.
+            for key in ("failover_aliases", "failover_virtual_aliases"):
+                if aliases := data.get(key):
+                    data[key] = [
+                        {k: v for k, v in alias.items() if k != "netmask"}
+                        for alias in aliases
+                    ]
 
 
 class NetworkInterfaceUpdate(NetworkInterfaceCreate):
