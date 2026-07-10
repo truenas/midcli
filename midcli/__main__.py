@@ -241,15 +241,15 @@ class CLI:
             # while we were sleeping (e.g. a key held down), so we don't replay
             # the backlog the moment it's released. Both sessions share stdin,
             # so clearing via either input clears the buffer for both.
-            throttler = Throttler(flush=lambda: clear_typeahead(menu_app.input))
+            throttler = Throttler(discard_callback=lambda: clear_typeahead(menu_app.input))
 
             while True:
-                throttler.throttle()
-
                 if self.context.menu_item:
                     process_menu_item(self.context, menu_items, self.context.menu_item)
                     break
                 elif self.context.menu:
+                    throttler.throttle()
+
                     try:
                         text = menu_app.prompt()
                     except KeyboardInterrupt:
@@ -257,6 +257,9 @@ class CLI:
 
                     process_menu_item(self.context, menu_items, text)
                 else:
+                    # Don't lose user's input (i.e. a pasted large multiline chunk)
+                    throttler.throttle(discard=False)
+
                     if prompt_app is None:
                         prompt_app = self._build_cli(history)
 
