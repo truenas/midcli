@@ -184,8 +184,11 @@ class Steps:
     def _input_complete(self, input: Input):
         return input_complete(input, self.data)
 
+    def _title_for(self, input: Input):
+        return self.schema[input.name]["title"]
+
     def _draw_widgets(self, widgets: [Error, Header, Input]):
-        label_length = max(map(len, [self.schema[widget.name]["title"]
+        label_length = max(map(len, [self._title_for(widget)
                                      for widget in widgets
                                      if isinstance(widget, Input)]))
 
@@ -209,7 +212,7 @@ class Steps:
     def _draw_input(self, input: Input, label_length):
         schema = self.schema[input.name]
 
-        label = schema["title"].rjust(label_length)
+        label = self._title_for(input).rjust(label_length)
 
         delegate = create_input_delegate(input, schema)
         if input.name in self.data:
@@ -241,7 +244,7 @@ class Steps:
 
         value = self.data.get(input.name, undefined)
 
-        return create_input_delegate(input, schema).create_input_app(self.title, schema["title"], value)
+        return create_input_delegate(input, schema).create_input_app(self.title, self._title_for(input), value)
 
     def _handle_input_value(self, input, value):
         schema = self.schema[input.name]
