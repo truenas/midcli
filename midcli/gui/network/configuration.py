@@ -28,3 +28,14 @@ class NetworkConfiguration(Steps):
             Input("nameserver2"),
             Input("nameserver3"),
         ]))
+
+    def _title_for(self, input: Input):
+        if input.name == "hostname":
+            with self.context.get_client() as c:
+                if c.call("failover.licensed"):
+                    if c.call("failover.node") == "B":
+                        return "Controller 2 Hostname"
+
+                    return "Controller 1 Hostname"
+
+        return super()._title_for(input)
