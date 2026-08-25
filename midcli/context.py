@@ -185,12 +185,13 @@ class Namespaces:
 
 
 class Context:
-    def __init__(self, cli, url, user, password, timeout, editor, menu, menu_item, mode, stacks):
+    def __init__(self, cli, url, user, password, timeout, editor, menu, menu_item, mode, stacks, vendor):
         self.cli = cli
         self.url = url
         self.user = user
         self.password = password
         self.timeout = timeout
+        self.vendor = vendor
         self.reload()
         with self.get_client() as c:
             self.methods = c.call('core.get_methods', None, 'CLI')
@@ -266,7 +267,7 @@ class Context:
                     error = 'middleware is not responding'
                     recoverable_error = True
                 elif isinstance(e, ClientException) and e.errno == ClientException.ENOTAUTHENTICATED:
-                    error = 'You are not authorized to use TrueNAS CLI'
+                    error = f'You are not authorized to use {self.vendor} CLI'
                 elif isinstance(e, ClientException) and e.error == 'Failed connection handshake':
                     error = e.error
                     recoverable_error = True
